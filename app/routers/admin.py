@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User, Config, process_config_remark
@@ -7,36 +8,28 @@ from datetime import datetime, timedelta
 import uuid
 
 router = APIRouter()
-
-@router.get("/")
-def dashboard(request: Request, db: Session = Depends(get_db)):
-    users = db.query(User).all()
-    configs = db.query(Config).all()
-    from fastapi.templating import Jinja2Templates
-# ...
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).all()
     configs = db.query(Config).all()
-    return templates.TemplateResponse("dashboard.html", {"request": request, "users": users, "configs": configs})می‌کنیم
+    return templates.TemplateResponse("dashboard.html", {"request": request, "users": users, "configs": configs})
 
 @router.post("/add-config")
 def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
-    # پردازش کانفیگ‌های ورودی (هر خط یک کانفیگ)
     lines = raw_text.strip().split('\n')
     now = datetime.utcnow()
     
     for line in lines:
         line = line.strip()
-        if not line: continue
+        if not line: 
+            continue
         
-        # استخراج پروتکل (مثلاً vless://...)
         protocol = line.split("://")[0] if "://" in line else "unknown"
-        
-        # پردازش نام (فرض می‌کنیم نام اصلی بعد از # باشد)
         original_remark = line.split("#")[-1] if "#" in line else "Unknown"
+        
+        # پردازش نام کانفیگ برای حذف تبلیغات و اضافه کردن ساعت و پرچم
         clean_remark = process_config_remark(original_remark, now)
         
         new_config = Config(
