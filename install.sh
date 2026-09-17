@@ -15,6 +15,12 @@ echo -e "${GREEN}=======================================================${NC}"
 echo -e "\n${YELLOW}[1/5] Installing system prerequisites...${NC}"
 apt update -y >/dev/null 2>&1
 apt install -y python3 python3-pip python3-venv git curl wget >/dev/null 2>&1
+# نصب Xray-Core
+echo -e "\n${YELLOW}Installing Xray-Core...${NC}"
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install >/dev/null 2>&1
+# توقف سرویس xray چون ما فقط برای تست از آن استفاده می‌کنیم
+systemctl stop xray >/dev/null 2>&1
+systemctl disable xray >/dev/null 2>&1
 
 # 2. Clone or Update Repository
 INSTALL_DIR="$HOME/conf-to-sub"
