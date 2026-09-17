@@ -14,7 +14,12 @@ templates = Jinja2Templates(directory="app/templates")
 def dashboard(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).all()
     configs = db.query(Config).all()
-    return templates.TemplateResponse("dashboard.html", {"request": request, "users": users, "configs": configs})
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request, 
+        "users": users, 
+        "configs": configs,
+        "now": datetime.utcnow()  # <-- این خط اضافه شد
+    })
 
 @router.post("/add-config")
 def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
