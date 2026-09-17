@@ -16,15 +16,20 @@ templates = Jinja2Templates(directory="app/templates")
 def dashboard(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).all()
     configs = db.query(Config).all()
+    
+    # دریافت پیام از Session و پاک کردن آن پس از نمایش
+    message = request.session.pop("message", None)
+    
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
         "users": users, 
         "configs": configs,
-        "now": datetime.utcnow()
+        "now": datetime.utcnow(),
+        "message": message  # ارسال پیام به قالب HTML
     })
 
 @router.post("/add-config")
-async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
+async def add_config(request: Request, raw_text: str = Form(...), db: Session = Depends(get_db)):
     lines = raw_text.strip().split('\n')
     now = datetime.utcnow()
     
@@ -33,8 +38,7 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
     
     for line in lines:
         line = line.strip()
-        if not line:
-            continue
+        if not line: continue
         
         protocol = line.split("://")[0] if "://" in line else "unknown"
         original_remark = line.split("#")[-1] if "#" in line else "Unknown"
@@ -48,9 +52,7 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
             "time": now
         })
     
-    print(f"🔍 شروع تست سلامت برای {len(configs_to_test)} کانفیگ...")
-    
-    # تست سلامت همزمان همه کانفیگ‌ها
+    # تست سلامت
     tasks = [health_checker.test_config_health(config) for config in configs_to_test]
     results = await asyncio.gather(*tasks)
     
@@ -68,18 +70,25 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
             )
             db.add(new_config)
             saved_count += 1
-            print(f"✅ سالم: {data['remark']}")
         else:
             failed_count += 1
-            print(f"❌ خراب یا نامعتبر: {config_data[i]['remark']}")
     
     db.commit()
-    print(f"🏁 پایان: {saved_count} کانفیگ سالم ذخیره شد | {failed_count} کانفیگ حذف شد")
     
-    return RedirectResponse(url=f"/admin/?saved={saved_count}&failed={failed_count}", status_code=303)
+    # ساخت پیام و ذخیره در Session
+    if saved_count > 0 and failed_count > 0:
+        msg = f"✅ {saved_count} کانفیگ سالم ذخیره شد |  {failed_count} کانفیگ خراب حذف شد"
+    elif saved_count > 0:
+        msg = f"🎉 همه {saved_count} کانفیگ سالم بودند و با موفقیت ذخیره شدند!"
+    else:
+        msg = f"⚠️ متأسفانه هیچ کانفیگ سالمی یافت نشد. ({failed_count} کانفیگ بررسی شد)"
+        
+    request.session["message"] = msg
+    
+    return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-user")
-def add_user(username: str = Form(...), days: int = Form(...), db: Session = Depends(get_db)):
+def add_user(request: Request, username: str = Form(...), days: int = Form(...), db: Session = Depends(get_db)):
     expire = datetime.utcnow() + timedelta(days=days)
     new_user = User(
         username=username,
@@ -88,4 +97,6 @@ def add_user(username: str = Form(...), days: int = Form(...), db: Session = Dep
     )
     db.add(new_user)
     db.commit()
+    
+    request.session["message"] = f"👤 کاربر {username} با موفقیت ساخته شد."
     return RedirectResponse(url="/admin/", status_code=303)
