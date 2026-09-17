@@ -8,6 +8,7 @@ import shutil
 from urllib.parse import urlparse, parse_qs, unquote
 
 XRAY_PATH = "/usr/local/bin/xray"
+CURL_PATH = "/usr/bin/curl"  # <-- مسیر دقیق curl اضافه شد
 SOCKS_PORT = 1080
 
 async def test_config_health(config_link: str, timeout: int = 5) -> bool:
@@ -46,8 +47,9 @@ def _run_xray_test(config_link: str, timeout: int) -> bool:
         
         is_healthy = False
         try:
+            # استفاده از مسیر دقیق curl
             result = subprocess.run(
-                ["curl", "-s", "-m", "4", "--socks5-hostname", f"127.0.0.1:{SOCKS_PORT}", "http://www.gstatic.com/generate_204"],
+                [CURL_PATH, "-s", "-m", "4", "--socks5-hostname", f"127.0.0.1:{SOCKS_PORT}", "http://www.gstatic.com/generate_204"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=5
