@@ -28,7 +28,6 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
     lines = raw_text.strip().split('\n')
     now = datetime.utcnow()
     
-    # آماده‌سازی لیست کانفیگ‌ها برای تست
     configs_to_test = []
     config_data = []
     
@@ -49,11 +48,12 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
             "time": now
         })
     
+    print(f"🔍 شروع تست سلامت برای {len(configs_to_test)} کانفیگ...")
+    
     # تست سلامت همزمان همه کانفیگ‌ها
     tasks = [health_checker.test_config_health(config) for config in configs_to_test]
     results = await asyncio.gather(*tasks)
     
-    # ذخیره فقط کانفیگ‌های سالم
     saved_count = 0
     failed_count = 0
     
@@ -68,12 +68,13 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
             )
             db.add(new_config)
             saved_count += 1
+            print(f"✅ سالم: {data['remark']}")
         else:
             failed_count += 1
+            print(f"❌ خراب یا نامعتبر: {config_data[i]['remark']}")
     
     db.commit()
-    
-    print(f"✅ {saved_count} کانفیگ سالم ذخیره شد | ❌ {failed_count} کانفیگ نامعتبر حذف شد")
+    print(f"🏁 پایان: {saved_count} کانفیگ سالم ذخیره شد | {failed_count} کانفیگ حذف شد")
     
     return RedirectResponse(url="/admin/", status_code=303)
 
