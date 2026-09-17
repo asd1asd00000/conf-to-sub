@@ -15,19 +15,30 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
     if not user or not user.is_active:
         raise HTTPException(status_code=404, detail="کاربر یافت نشد یا غیرفعال است")
         
-    # ۲. بررسی تاریخ انقضا
+    # . بررسی تاریخ انقضا
     if user.expire_date < datetime.utcnow():
         raise HTTPException(status_code=403, detail="اعتبار سابسکریپشن شما به پایان رسیده است")
         
     # ۳. دریافت تمام کانفیگ‌های موجود در پنل
-    # (در آینده می‌توان این را به user_config_association محدود کرد)
     configs = db.query(Config).all()
     
     if not configs:
         raise HTTPException(status_code=404, detail="هیچ کانفیگی در حال حاضر موجود نیست")
         
-    # ۴. آماده‌سازی لیست کانفیگ‌ها (هر کانفیگ در یک خط)
-    config_list = [config.raw_config for config in configs]
+    # ۴. آماده‌سازی لیست کانفیگ‌ها و جایگزینی نام‌های تمیز شده
+    config_list = []
+    for config in configs:
+        # پیدا کردن بخش remark در لینک خام (بعد از #)
+        if "#" in config.raw_config:
+            # جدا کردن بخش اصلی لینک از نام قدیمی
+            base_url = config.raw_config.split("#")[0]
+            # ساخت لینک جدید با نام تمیز شده
+            clean_config = f"{base_url}#{config.remark}"
+            config_list.append(clean_config)
+        else:
+            # اگر نام نداشت، همان را اضافه کن
+            config_list.append(config.raw_config)
+            
     raw_text = "\n".join(config_list)
     
     # ۵. تبدیل به Base64 (استاندارد اکثر کلاینت‌ها مثل v2rayNG/v2rayN)
