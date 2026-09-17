@@ -1,16 +1,17 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 from .database import engine, Base
-from .routers import admin, sub  # <-- اضافه شدن sub
+from .routers import admin, sub
 
-# ساخت جداول دیتابیس در اولین اجرا
+# ساخت جداول دیتابیس
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Gift Panel")
 
-# تنظیمات فایل‌های استاتیک (CSS, JS)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# فعال‌سازی Session با یک کلید امنیتی
+app.add_middleware(SessionMiddleware, secret_key="gift-panel-secret-key-12345")
 
-# ثبت مسیرهای (Routers) پنل ادمین و سابسکریپشن
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.include_router(admin.router, prefix="/admin")
-app.include_router(sub.router, prefix="/sub")  # <-- اضافه شدن مسیر سابسکریپشن
+app.include_router(sub.router, prefix="/sub")
