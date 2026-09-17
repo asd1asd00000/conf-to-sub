@@ -76,7 +76,7 @@ async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
     db.commit()
     print(f"🏁 پایان: {saved_count} کانفیگ سالم ذخیره شد | {failed_count} کانفیگ حذف شد")
     
-    return RedirectResponse(url="/admin/", status_code=303)
+    return RedirectResponse(url=f"/admin/?saved={saved_count}&failed={failed_count}", status_code=303)
 
 @router.post("/add-user")
 def add_user(username: str = Form(...), days: int = Form(...), db: Session = Depends(get_db)):
