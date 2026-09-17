@@ -12,7 +12,15 @@ router = APIRouter()
 def dashboard(request: Request, db: Session = Depends(get_db)):
     users = db.query(User).all()
     configs = db.query(Config).all()
-    return {"users": users, "configs": configs} # فعلاً دیکشنری برمی‌گردانیم، در قدم بعد HTML می‌کنیم
+    from fastapi.templating import Jinja2Templates
+# ...
+templates = Jinja2Templates(directory="app/templates")
+
+@router.get("/")
+def dashboard(request: Request, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    configs = db.query(Config).all()
+    return templates.TemplateResponse("dashboard.html", {"request": request, "users": users, "configs": configs})می‌کنیم
 
 @router.post("/add-config")
 def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
