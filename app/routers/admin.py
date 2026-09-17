@@ -4,8 +4,10 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User, Config, process_config_remark
+from ..services import health_checker
 from datetime import datetime, timedelta
 import uuid
+import asyncio
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -18,33 +20,61 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         "request": request, 
         "users": users, 
         "configs": configs,
-        "now": datetime.utcnow()  # <-- این خط اضافه شد
+        "now": datetime.utcnow()
     })
 
 @router.post("/add-config")
-def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
+async def add_config(raw_text: str = Form(...), db: Session = Depends(get_db)):
     lines = raw_text.strip().split('\n')
     now = datetime.utcnow()
     
+    # آماده‌سازی لیست کانفیگ‌ها برای تست
+    configs_to_test = []
+    config_data = []
+    
     for line in lines:
         line = line.strip()
-        if not line: 
+        if not line:
             continue
         
         protocol = line.split("://")[0] if "://" in line else "unknown"
         original_remark = line.split("#")[-1] if "#" in line else "Unknown"
-        
-        # پردازش نام کانفیگ برای حذف تبلیغات و اضافه کردن ساعت و پرچم
         clean_remark = process_config_remark(original_remark, now)
         
-        new_config = Config(
-            raw_config=line,
-            remark=clean_remark,
-            protocol=protocol,
-            added_time=now
-        )
-        db.add(new_config)
+        configs_to_test.append(line)
+        config_data.append({
+            "line": line,
+            "remark": clean_remark,
+            "protocol": protocol,
+            "time": now
+        })
+    
+    # تست سلامت همزمان همه کانفیگ‌ها
+    tasks = [health_checker.test_config_health(config) for config in configs_to_test]
+    results = await asyncio.gather(*tasks)
+    
+    # ذخیره فقط کانفیگ‌های سالم
+    saved_count = 0
+    failed_count = 0
+    
+    for i, is_healthy in enumerate(results):
+        if is_healthy:
+            data = config_data[i]
+            new_config = Config(
+                raw_config=data["line"],
+                remark=data["remark"],
+                protocol=data["protocol"],
+                added_time=data["time"]
+            )
+            db.add(new_config)
+            saved_count += 1
+        else:
+            failed_count += 1
+    
     db.commit()
+    
+    print(f"✅ {saved_count} کانفیگ سالم ذخیره شد | ❌ {failed_count} کانفیگ نامعتبر حذف شد")
+    
     return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-user")
