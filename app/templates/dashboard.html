@@ -5,10 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gift Panel - داشبورد</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* انیمیشن برای پاپ‌آپ */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .toast-enter { animation: slideIn 0.5s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.5s ease-out forwards; }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
+
+    <!-- بخش نمایش پیام (Toast Notification) -->
+    {% if message %}
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-white border-r-4 border-blue-500 shadow-2xl rounded-lg p-4 z-50 toast-enter flex items-center gap-3 min-w-[300px]">
+        <div class="text-2xl">🔔</div>
+        <div class="flex-1">
+            <p class="font-bold text-gray-800 text-sm">پیام سیستم</p>
+            <p class="text-gray-600 text-sm mt-1">{{ message }}</p>
+        </div>
+        <button onclick="closeToast()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+    <script>
+        // بستن خودکار بعد از 5 ثانیه
+        setTimeout(() => {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 500);
+            }
+        }, 5000);
+
+        function closeToast() {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 500);
+            }
+        }
+    </script>
+    {% endif %}
+
     <div class="container mx-auto p-4 md:p-8">
-        <h1 class="text-3xl font-bold text-blue-600 mb-8 text-center">🎁 Gift Panel - مدیریت پنل</h1>
+        <h1 class="text-3xl font-bold text-blue-600 mb-8 text-center"> Gift Panel - مدیریت پنل</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <!-- فرم افزودن کانفیگ -->
@@ -17,7 +65,7 @@
                 <form action="/admin/add-config" method="POST">
                     <textarea name="raw_text" rows="5" class="w-full p-3 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none text-left dir-ltr" 
                               placeholder="vless://...&#10;vmess://..."></textarea>
-                    <button type="submit" class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">ذخیره کانفیگ‌ها</button>
+                    <button type="submit" class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">ذخیره و بررسی سلامت</button>
                 </form>
             </div>
 
@@ -32,11 +80,9 @@
             </div>
         </div>
 
-        <!-- جدول کاربران و لینک‌های سابسکریپشن -->
+        <!-- جدول کاربران -->
         <div class="bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-                👥 لیست کاربران و لینک‌های سابسکریپشن
-            </h2>
+            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">👥 لیست کاربران و لینک‌های سابسکریپشن</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-right">
                     <thead class="bg-gray-50 text-gray-600 uppercase">
@@ -64,14 +110,12 @@
                                     <input type="text" readonly value="http://{{ request.url.hostname }}:{{ request.url.port }}/sub/{{ user.sub_uuid }}" 
                                            class="bg-gray-100 border border-gray-300 text-gray-600 text-xs rounded p-2 w-full dir-ltr text-left">
                                     <button onclick="navigator.clipboard.writeText('http://{{ request.url.hostname }}:{{ request.url.port }}/sub/{{ user.sub_uuid }}')" 
-                                            class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600" title="کپی لینک">📋</button>
+                                            class="bg-blue-500 text-white p-2 rounded hover:bg-blue-600" title="کپی لینک"></button>
                                 </div>
                             </td>
                         </tr>
                         {% else %}
-                        <tr>
-                            <td colspan="4" class="px-4 py-6 text-center text-gray-500">هنوز کاربری ثبت نشده است.</td>
-                        </tr>
+                        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">هنوز کاربری ثبت نشده است.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -81,7 +125,7 @@
         <!-- وضعیت کانفیگ‌ها -->
         <div class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-semibold mb-4">📊 وضعیت کانفیگ‌ها</h2>
-            <p class="mb-4 text-gray-600">تعداد کل کانفیگ‌های تمیز شده: <span class="font-bold text-green-600 text-lg">{{ configs|length }}</span></p>
+            <p class="mb-4 text-gray-600">تعداد کل کانفیگ‌های فعال: <span class="font-bold text-green-600 text-lg">{{ configs|length }}</span></p>
             <ul class="bg-gray-50 p-4 rounded max-h-48 overflow-y-auto text-xs font-mono border border-gray-200 dir-ltr text-left">
                 {% for config in configs[-10:] %}
                     <li class="mb-1 text-gray-700 border-b border-gray-200 pb-1 last:border-0 text-ellipsis overflow-hidden whitespace-nowrap">✅ {{ config.remark }}</li>
