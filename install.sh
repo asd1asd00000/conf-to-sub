@@ -51,6 +51,9 @@ if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
 source venv/bin/activate
+# نصب requests به صورت جداگانه
+echo -e "${BLUE}→ Installing requests for health checker...${NC}"
+pip install requests -i "$PIP_MIRROR" --trusted-host pypi.tuna.tsinghua.edu.cn
 
 # ارتقای pip با میرور چینی
 echo -e "${BLUE}→ Upgrading pip via mirror...${NC}"
