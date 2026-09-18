@@ -19,7 +19,7 @@ apt install -y python3 python3-pip python3-venv git curl wget
 # 2. Clone or Update Repository
 INSTALL_DIR="$HOME/conf-to-sub"
 # ⚠️ IMPORTANT: Replace YOUR_GITHUB_USERNAME with your actual GitHub username!
-REPO_URL="https://github.com/YOUR_GITHUB_USERNAME/conf-to-sub.git"
+REPO_URL="https://github.com/asd1asd00000/conf-to-sub.git"
 
 echo -e "\n${YELLOW}[2/6] Preparing project files...${NC}"
 if [ -d "$INSTALL_DIR" ]; then
