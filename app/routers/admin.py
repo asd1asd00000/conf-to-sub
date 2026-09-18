@@ -33,51 +33,45 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
         request.session["message"] = "⚠️ هیچ کانفیگی وارد نشد."
         return RedirectResponse(url="/admin/", status_code=303)
 
-    # آماده‌سازی متادیتای هر کانفیگ
     metas = []
     for line in lines:
         protocol = line.split("://")[0] if "://" in line else "unknown"
         original_remark = health_checker.get_remark(line) or "Unknown"
-        clean_remark = process_config_remark(original_remark, now)
-        metas.append({"line": line, "remark": clean_remark, "protocol": protocol})
+        base_remark = process_config_remark(original_remark, now)
+        metas.append({"line": line, "base_remark": base_remark, "protocol": protocol})
 
-    print(f"🔍 شروع تست سلامت برای {len(metas)} کانفیگ (موازی: {health_checker.CONCURRENT})...")
+    print(f"🔍 بررسی {len(metas)} کانفیگ...")
+    results = await health_checker.check_configs([m["line"] for m in metas])
 
-    # تست دسته‌ای و موازی
-    statuses = await health_checker.check_configs([m["line"] for m in metas])
+    saved = 0
+    verified = 0
+    discarded = 0
 
-    ok_count = 0
-    untestable_count = 0
-    fail_count = 0
-
-    for meta, st in zip(metas, statuses):
-        if st == health_checker.STATUS_FAIL:
-            fail_count += 1
-            print(f"❌ خراب: {meta['remark']}")
+    for meta, res in zip(metas, results):
+        if res == health_checker.RESULT_DISCARD:
+            discarded += 1
             continue
-        if st == health_checker.STATUS_UNTESTABLE:
-            untestable_count += 1
-            print(f"⚠️ بدون تست (پروتکل غیرقابل تست با Xray): {meta['remark']}")
-        else:
-            ok_count += 1
-            print(f"✅ سالم: {meta['remark']}")
+        remark = meta["base_remark"]
+        if res == health_checker.RESULT_VERIFIED:
+            remark = f"{health_checker.MARK_OK} {remark}"
+            verified += 1
         db.add(Config(
             raw_config=meta["line"],
-            remark=meta["remark"],
+            remark=remark,
             protocol=meta["protocol"],
             added_time=now
         ))
+        saved += 1
 
     db.commit()
 
-    msg = f"✅ {ok_count} کانفیگ سالم ذخیره شد"
-    if untestable_count:
-        msg += f" | ⚠️ {untestable_count} کانفیگ بدون تست ذخیره شد"
-    if fail_count:
-        msg += f" | ❌ {fail_count} کانفیگ خراب حذف شد"
+    msg = f"💾 {saved} کانفیگ ذخیره شد"
+    if verified:
+        msg += f" | {verified} مورد تأیید شد ✅"
+    if discarded:
+        msg += f" | ⚠️ {discarded} ورودی نامعتبر دور ریخته شد"
     request.session["message"] = msg
-
-    print(f"🏁 پایان: {msg}")
+    print(f"🏁 {msg}")
     return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-user")
