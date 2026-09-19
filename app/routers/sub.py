@@ -81,14 +81,29 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
     configs = db.query(Config).all()
 
     config_list = []
+    idx = 0
 
     # 📢 اطلاع‌رسانی ادمین در بالای لیست
     if get_setting(db, "broadcast_enabled", "0") == "1":
         btext = get_setting(db, "broadcast_text", "")
-        idx = 0
         for line in [l.strip() for l in btext.split("\n") if l.strip()]:
             config_list.append(_make_fake_config(f"📢 {line}", idx))
             idx += 1
+
+    # 🔔 یادآوری آپدیت ساب (اگر زمان تعیین‌شده گذشته باشد)
+    try:
+        reminder_hours = int(get_setting(db, "reminder_hours", "24") or "0")
+    except ValueError:
+        reminder_hours = 0
+    
+    if reminder_hours > 0 and user.last_seen:
+        hours_since = (datetime.utcnow() - user.last_seen).total_seconds() / 3600
+        if hours_since > reminder_hours:
+            rtext = get_setting(db, "reminder_text",
+                "۲۴ ساعت از آخرین آپدیت شما گذشته\nلطفاً لینک اشتراک را آپدیت کنید تا سرورها لود شوند")
+            for line in [l.strip() for l in rtext.split("\n") if l.strip()]:
+                config_list.append(_make_fake_config(f"🔔 {line}", idx))
+                idx += 1
 
     if not configs and not config_list:
         return _encode_and_respond(_make_fake_configs(MSG_NO_CONFIG), user)
