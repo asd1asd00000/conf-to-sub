@@ -274,6 +274,15 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "message": message,
         "active_page": "settings",
+            # تنظیمات بک‌آپ
+    backup_enabled = get_setting(db, "backup_enabled", "0") == "1"
+    try:
+        backup_hours = int(get_setting(db, "backup_hours", "0") or "0")
+    except ValueError:
+        backup_hours = 0
+    backup_email_to = get_setting(db, "backup_email_to", "")
+    backup_email_from = get_setting(db, "backup_email_from", "")
+    backup_last_sent = get_setting(db, "backup_last_sent", "")
         "broadcast_enabled": broadcast_enabled,
         "broadcast_text": broadcast_text,
         "reminder_hours": reminder_hours,
