@@ -1,15 +1,20 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy import text, inspect
 from .database import engine, Base
 from .routers import admin, sub
 
-# ساخت جداول دیتابیس
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Gift Panel")
+# مهاجریت خودکار: افزودن ستون last_seen به دیتابیس‌های قدیمی
+_inspector = inspect(engine)
+_user_cols = [c["name"] for c in _inspector.get_columns("users")]
+if "last_seen" not in _user_cols:
+    with engine.begin() as _conn:
+        _conn.execute(text("ALTER TABLE users ADD COLUMN last_seen DATETIME"))
 
-# فعال‌سازی Session با یک کلید امنیتی
+app = FastAPI(title="Gift Panel")
 app.add_middleware(SessionMiddleware, secret_key="gift-panel-secret-key-12345")
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
