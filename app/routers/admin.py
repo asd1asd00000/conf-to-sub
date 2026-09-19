@@ -255,13 +255,40 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
     message = request.session.pop("message", None)
     broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
     broadcast_text = get_setting(db, "broadcast_text", "")
+    
+    # تنظیمات یادآوری
+    try:
+        reminder_hours = int(get_setting(db, "reminder_hours", "24") or "0")
+    except ValueError:
+        reminder_hours = 0
+    reminder_text = get_setting(db, "reminder_text",
+        "۲۴ ساعت از آخرین آپدیت شما گذشته\nلطفاً لینک اشتراک را آپدیت کنید تا سرورها لود شوند")
+    
     return templates.TemplateResponse("settings.html", {
         "request": request,
         "message": message,
         "active_page": "settings",
         "broadcast_enabled": broadcast_enabled,
-        "broadcast_text": broadcast_text
+        "broadcast_text": broadcast_text,
+        "reminder_hours": reminder_hours,
+        "reminder_text": reminder_text
     })
+
+@router.post("/settings/broadcast")
+def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_enabled: bool = Form(False), db: Session = Depends(get_db)):
+    set_setting(db, "broadcast_enabled", "1" if broadcast_enabled else "0")
+    set_setting(db, "broadcast_text", broadcast_text.strip())
+    request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
+    return RedirectResponse(url="/admin/settings", status_code=303)
+
+@router.post("/settings/reminder")
+def save_reminder(request: Request, reminder_hours: int = Form(0), reminder_text: str = Form(""), db: Session = Depends(get_db)):
+    # محدود کردن بین 0 (بی‌نهایت) تا 8760 (یک سال)
+    hours = max(0, min(8760, reminder_hours))
+    set_setting(db, "reminder_hours", str(hours))
+    set_setting(db, "reminder_text", reminder_text.strip())
+    request.session["message"] = f"⚙️ تنظیمات یادآوری ذخیره شد ({hours} ساعت)."
+    return RedirectResponse(url="/admin/settings", status_code=303)
 
 @router.post("/settings/broadcast")
 def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_enabled: bool = Form(False), db: Session = Depends(get_db)):
