@@ -110,6 +110,19 @@
     </table>
 </div>
 
+<!-- صفحه‌بندی کاربران -->
+{% if total_pages > 1 %}
+<div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center justify-center gap-2 text-sm">
+    {% if page > 1 %}
+        <a href="/admin/users?page={{ page - 1 }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">قبلی</a>
+    {% endif %}
+    <span class="text-gray-600">صفحه <b>{{ page }}</b> از <b>{{ total_pages }}</b> <span class="text-gray-400">(کل: {{ total_count }})</span></span>
+    {% if page < total_pages %}
+        <a href="/admin/users?page={{ page + 1 }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">بعدی</a>
+    {% endif %}
+</div>
+{% endif %}
+
 <!-- کارت‌های موبایل -->
 <div class="md:hidden space-y-3">
 {% for user in users %}
