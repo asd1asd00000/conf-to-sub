@@ -3,8 +3,9 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import User, Config, process_config_remark, get_setting, set_setting
+from ..models import User, Config, process_config_remark, get_setting, set_setting, Setting
 from ..services import health_checker
+from ..services import backup_service, scheduler as backup_scheduler
 from datetime import datetime, timedelta
 import uuid
 import io
