@@ -62,6 +62,8 @@ pip install --upgrade pip -i "$PIP_MIRROR" --trusted-host pypi.tuna.tsinghua.edu
 # نصب پکیج‌ها با میرور چینی
 echo -e "${BLUE}→ Installing dependencies via mirror...${NC}"
 pip install -r requirements.txt -i "$PIP_MIRROR" --trusted-host pypi.tuna.tsinghua.edu.cn
+# نصب پکیج‌های اضافی که ممکن است در requirements نباشند
+pip install qrcode==7.4.2 -i "$PIP_MIRROR" --trusted-host pypi.tuna.tsinghua.edu.cn
 
 # بررسی موفقیت نصب
 if [ ! -f "venv/bin/uvicorn" ]; then
