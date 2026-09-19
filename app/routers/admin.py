@@ -49,11 +49,19 @@ def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session =
     })
 
 @router.get("/users")
-def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
+def users_page(request: Request, q: str = "", page: int = Query(1), per_page: int = Query(20), db: Session = Depends(get_db)):
+    if per_page not in (10, 20, 50, 100):
+        per_page = 20
     query = db.query(User)
     if q:
         query = query.filter(User.username.contains(q))
-    users = query.order_by(User.id.desc()).all()
+    total_count = query.count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    if page < 1:
+        page = 1
+    if page > total_pages:
+        page = total_pages
+    users = query.order_by(User.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
     now = datetime.utcnow()
 
     for u in users:
@@ -79,7 +87,6 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
         u.seen_txt = time_ago(u.last_seen, now)
         u.seen_recent = bool(u.last_seen and (now - u.last_seen).total_seconds() < 86400)
 
-    total_count = db.query(User).count()
     active_count = db.query(User).filter(User.is_active == True, User.expire_date > now).count()
     expired_count = db.query(User).filter(User.expire_date < now).count()
     message = request.session.pop("message", None)
@@ -88,7 +95,8 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
         "request": request, "users": users, "q": q, "now": now,
         "total_count": total_count, "active_count": active_count,
         "expired_count": expired_count, "message": message,
-        "active_page": "users", "base_url": base_url
+        "active_page": "users", "base_url": base_url,
+        "page": page, "per_page": per_page, "total_pages": total_pages
     })
 
 @router.post("/users/create")
