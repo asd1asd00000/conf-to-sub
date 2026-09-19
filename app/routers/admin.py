@@ -47,11 +47,6 @@ def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session =
         "request": request, "configs": configs, "now": datetime.utcnow(),
         "message": message, "active_page": "dashboard", "base_url": base_url,
         "page": page, "per_page": per_page, "total_pages": total_pages, "total_count": total_count
-                "backup_enabled": backup_enabled,
-        "backup_hours": backup_hours,
-        "backup_email_to": backup_email_to,
-        "backup_email_from": backup_email_from,
-        "backup_last_sent": backup_last_sent,
     })
 
 @router.get("/users")
@@ -85,11 +80,9 @@ def users_page(request: Request, q: str = "", page: int = Query(1), per_page: in
             u.mins_left = int((remain_sec % 3600) // 60)
 
         u.edit_days = max(0, math.ceil(remain_sec / 86400))
-
         u.used_txt = f"{int(used_sec // 86400)} روز و {int((used_sec % 86400) // 3600)} ساعت"
         u.total_txt = f"{int(total_sec // 86400)} روز و {int((total_sec % 86400) // 3600)} ساعت"
         u.percent = max(0, min(100, int(used_sec * 100 / total_sec)))
-
         u.seen_txt = time_ago(u.last_seen, now)
         u.seen_recent = bool(u.last_seen and (now - u.last_seen).total_seconds() < 86400)
 
@@ -177,8 +170,6 @@ def delete_user(request: Request, user_id: int, db: Session = Depends(get_db)):
         request.session["message"] = f"🗑️ کاربر {name} حذف شد."
     return RedirectResponse(url="/admin/users", status_code=303)
 
-# ========== کانفیگ‌ها ==========
-
 @router.post("/configs/{config_id}/delete")
 def delete_config(request: Request, config_id: int, db: Session = Depends(get_db)):
     config = db.query(Config).filter(Config.id == config_id).first()
@@ -212,7 +203,6 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
     try:
         lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
         now = datetime.utcnow()
-
         if not lines:
             request.session["message"] = "⚠️ هیچ کانفیگی وارد نشد."
             return RedirectResponse(url="/admin/", status_code=303)
@@ -227,10 +217,7 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
         print(f"🔍 بررسی {len(metas)} کانفیگ...", flush=True)
         results = await health_checker.check_configs([m["line"] for m in metas])
 
-        saved = 0
-        verified = 0
-        discarded = 0
-
+        saved = verified = discarded = 0
         for meta, res in zip(metas, results):
             if res == health_checker.RESULT_DISCARD:
                 discarded += 1
@@ -243,7 +230,6 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
             saved += 1
 
         db.commit()
-
         msg = f"💾 {saved} کانفیگ ذخیره شد"
         if verified:
             msg += f" | {verified} مورد تأیید شد ✅"
@@ -259,24 +245,18 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
 
     return RedirectResponse(url="/admin/", status_code=303)
 
-# ========== تنظیمات ==========
 @router.get("/settings")
 def settings_page(request: Request, db: Session = Depends(get_db)):
     message = request.session.pop("message", None)
-    
-    # تنظیمات اطلاع‌رسانی
     broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
     broadcast_text = get_setting(db, "broadcast_text", "")
     
-    # تنظیمات یادآوری
     try:
         reminder_hours = int(get_setting(db, "reminder_hours", "24") or "0")
     except ValueError:
         reminder_hours = 0
-    reminder_text = get_setting(db, "reminder_text",
-        "۲۴ ساعت از آخرین آپدیت شما گذشته\nلطفاً لینک اشتراک را آپدیت کنید تا سرورها لود شوند")
+    reminder_text = get_setting(db, "reminder_text", "۲۴ ساعت از آخرین آپدیت شما گذشته\nلطفاً لینک اشتراک را آپدیت کنید تا سرورها لود شوند")
     
-    # تنظیمات بک‌آپ
     backup_enabled = get_setting(db, "backup_enabled", "0") == "1"
     try:
         backup_hours = int(get_setting(db, "backup_hours", "0") or "0")
@@ -310,20 +290,11 @@ def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_e
 
 @router.post("/settings/reminder")
 def save_reminder(request: Request, reminder_hours: int = Form(0), reminder_text: str = Form(""), db: Session = Depends(get_db)):
-    # محدود کردن بین 0 (بی‌نهایت) تا 8760 (یک سال)
     hours = max(0, min(8760, reminder_hours))
     set_setting(db, "reminder_hours", str(hours))
     set_setting(db, "reminder_text", reminder_text.strip())
     request.session["message"] = f"⚙️ تنظیمات یادآوری ذخیره شد ({hours} ساعت)."
     return RedirectResponse(url="/admin/settings", status_code=303)
-
-@router.post("/settings/broadcast")
-def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_enabled: bool = Form(False), db: Session = Depends(get_db)):
-    set_setting(db, "broadcast_enabled", "1" if broadcast_enabled else "0")
-    set_setting(db, "broadcast_text", broadcast_text.strip())
-    request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
-    return RedirectResponse(url="/admin/settings", status_code=303)
-    # ========== بک‌آپ ==========
 
 @router.post("/settings/backup")
 def save_backup_settings(
@@ -345,13 +316,11 @@ def save_backup_settings(
     if backup_smtp_password:
         set_setting(db, "backup_smtp_password", backup_smtp_password.replace(" ", ""))
 
-    # زمان‌بندی
     if backup_enabled and backup_hours > 0:
         backup_scheduler.reschedule(backup_hours)
     else:
         backup_scheduler.reschedule(0)
 
-    # اولین بک‌آپ فوری هنگام فعال‌سازی
     last_sent = get_setting(db, "backup_last_sent", "")
     first_backup_msg = ""
     if backup_enabled and not last_sent and backup_email_to.strip():
@@ -360,7 +329,6 @@ def save_backup_settings(
 
     request.session["message"] = f"💾 تنظیمات بک‌آپ ذخیره شد{first_backup_msg}"
     return RedirectResponse(url="/admin/settings", status_code=303)
-
 
 @router.post("/settings/backup/test")
 def test_backup_now(request: Request, db: Session = Depends(get_db)):
