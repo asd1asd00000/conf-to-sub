@@ -26,9 +26,19 @@
     </div>
 </div>
 
-<!-- جستجو -->
+<!-- جستجو + تعداد در صفحه -->
 <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
     <form method="get" action="/admin/users" class="flex gap-2">
+        <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+        <select name="per_page" class="border border-gray-300 rounded-lg text-sm p-2 bg-white">
+            {% for n in [10, 20, 50, 100] %}
+            <option value="{{ n }}" {{ 'selected' if per_page == n }}>{{ n }} تایی</option>
+            {% endfor %}
+        </select>
+        <button class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">جستجو</button>
+        {% if q %}<a href="/admin/users" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">حذف فیلتر</a>{% endif %}
+    </form>
+</div>
         <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
         <button class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">جستجو</button>
         {% if q %}<a href="/admin/users" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">حذف فیلتر</a>{% endif %}
