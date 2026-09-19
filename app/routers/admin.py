@@ -31,7 +31,6 @@ def time_ago(dt, now):
 
 @router.get("/")
 def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session = Depends(get_db)):
-    # صفحه‌بندی کانفیگ‌ها
     if per_page not in (10, 20, 50, 100):
         per_page = 20
     total_count = db.query(Config).count()
@@ -41,7 +40,6 @@ def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session =
     if page > total_pages:
         page = total_pages
     configs = db.query(Config).order_by(Config.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
-
     message = request.session.pop("message", None)
     base_url = f"{request.url.scheme}://{request.url.netloc}"
     return templates.TemplateResponse("dashboard.html", {
@@ -58,7 +56,6 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
     users = query.order_by(User.id.desc()).all()
     now = datetime.utcnow()
 
-    # محاسبات سازگار زمان (همه از یک مبنا: ثانیه)
     for u in users:
         remain_sec = (u.expire_date - now).total_seconds()
         used_sec = max(0.0, (now - u.created_at).total_seconds())
@@ -73,7 +70,6 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
             u.hours_left = int((remain_sec % 86400) // 3600)
             u.mins_left = int((remain_sec % 3600) // 60)
 
-        # روزهای فرم ویرایش: گرد به بالا (رفع باگ کسر روز)
         u.edit_days = max(0, math.ceil(remain_sec / 86400))
 
         u.used_txt = f"{int(used_sec // 86400)} روز و {int((used_sec % 86400) // 3600)} ساعت"
@@ -193,28 +189,6 @@ def bulk_configs(request: Request, action: str = Form(...), ids: str = Form(...)
     return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-config")
-# ========== تنظیمات ==========
-
-@router.get("/settings")
-def settings_page(request: Request, db: Session = Depends(get_db)):
-    message = request.session.pop("message", None)
-    broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
-    broadcast_text = get_setting(db, "broadcast_text", "")
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
-        "message": message,
-        "active_page": "settings",
-        "broadcast_enabled": broadcast_enabled,
-        "broadcast_text": broadcast_text
-    })
-
-@router.post("/settings/broadcast")
-def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_enabled: bool = Form(False), db: Session = Depends(get_db)):
-    set_setting(db, "broadcast_enabled", "1" if broadcast_enabled else "0")
-    set_setting(db, "broadcast_text", broadcast_text.strip())
-    request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
-    return RedirectResponse(url="/admin/settings", status_code=303)
-@router.post("/add-config")
 async def add_config(request: Request, raw_text: str = Form(...), db: Session = Depends(get_db)):
     try:
         lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
@@ -265,3 +239,25 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
         request.session["message"] = f"❌ خطا هنگام ذخیره: {e}"
 
     return RedirectResponse(url="/admin/", status_code=303)
+
+# ========== تنظیمات ==========
+
+@router.get("/settings")
+def settings_page(request: Request, db: Session = Depends(get_db)):
+    message = request.session.pop("message", None)
+    broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
+    broadcast_text = get_setting(db, "broadcast_text", "")
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "message": message,
+        "active_page": "settings",
+        "broadcast_enabled": broadcast_enabled,
+        "broadcast_text": broadcast_text
+    })
+
+@router.post("/settings/broadcast")
+def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_enabled: bool = Form(False), db: Session = Depends(get_db)):
+    set_setting(db, "broadcast_enabled", "1" if broadcast_enabled else "0")
+    set_setting(db, "broadcast_text", broadcast_text.strip())
+    request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
+    return RedirectResponse(url="/admin/settings", status_code=303)
