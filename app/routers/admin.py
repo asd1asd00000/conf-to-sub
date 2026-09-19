@@ -47,6 +47,11 @@ def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session =
         "request": request, "configs": configs, "now": datetime.utcnow(),
         "message": message, "active_page": "dashboard", "base_url": base_url,
         "page": page, "per_page": per_page, "total_pages": total_pages, "total_count": total_count
+                "backup_enabled": backup_enabled,
+        "backup_hours": backup_hours,
+        "backup_email_to": backup_email_to,
+        "backup_email_from": backup_email_from,
+        "backup_last_sent": backup_last_sent,
     })
 
 @router.get("/users")
