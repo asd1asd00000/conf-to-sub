@@ -193,6 +193,27 @@ def bulk_configs(request: Request, action: str = Form(...), ids: str = Form(...)
     return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-config")
+# ========== تنظیمات ==========
+
+@router.get("/settings")
+def settings_page(request: Request, db: Session = Depends(get_db)):
+    message = request.session.pop("message", None)
+    broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
+    broadcast_text = get_setting(db, "broadcast_text", "")
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "message": message,
+        "active_page": "settings",
+        "broadcast_enabled": broadcast_enabled,
+        "broadcast_text": broadcast_text
+    })
+
+@router.post("/settings/broadcast")
+def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_enabled: bool = Form(False), db: Session = Depends(get_db)):
+    set_setting(db, "broadcast_enabled", "1" if broadcast_enabled else "0")
+    set_setting(db, "broadcast_text", broadcast_text.strip())
+    request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
+    return RedirectResponse(url="/admin/settings", status_code=303)
 async def add_config(request: Request, raw_text: str = Form(...), db: Session = Depends(get_db)):
     lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
     now = datetime.utcnow()
