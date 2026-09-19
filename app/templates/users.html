@@ -40,21 +40,18 @@
     <table class="w-full text-sm text-right">
         <thead class="bg-gray-50 text-gray-500">
             <tr>
+                <th class="px-3 py-3 w-10"><input type="checkbox" id="selectAll" onclick="toggleAll(this)" class="w-4 h-4"></th>
                 <th class="px-4 py-3">نام کاربری</th>
                 <th class="px-4 py-3">وضعیت / انقضا</th>
-                <th class="px-4 py-3 w-64">مصرف زمان</th>
+                <th class="px-4 py-3 w-48">مصرف زمان</th>
+                <th class="px-4 py-3">آخرین دریافت ساب</th>
                 <th class="px-4 py-3">عملیات</th>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
         {% for user in users %}
-            {% set total_days = (user.expire_date - user.created_at).days %}
-            {% set used_days = (now - user.created_at).days %}
-            {% set percent = (used_days * 100) // total_days if total_days > 0 else 0 %}
-            {% if percent > 100 %}{% set percent = 100 %}{% endif %}
-            {% if percent < 0 %}{% set percent = 0 %}{% endif %}
-            {% set days_left = (user.expire_date - now).days %}
             <tr class="hover:bg-gray-50">
+                <td class="px-3 py-3"><input type="checkbox" class="userCheck w-4 h-4" value="{{ user.id }}" onclick="updateBulk()"></td>
                 <td class="px-4 py-3">
                     <div class="font-bold">{{ user.username }}</div>
                     <div class="text-xs text-gray-400">#{{ user.id }}</div>
@@ -62,30 +59,36 @@
                 <td class="px-4 py-3">
                     {% if not user.is_active %}
                         <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
-                    {% elif days_left >= 0 %}
+                    {% elif user.days_left >= 0 %}
                         <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
                     {% else %}
                         <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
                     {% endif %}
-                    <div class="text-xs text-gray-500 mt-1">{% if days_left >= 0 %}{{ days_left }} روز مانده{% else %}{{ days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
+                    <div class="text-xs text-gray-500 mt-1">{% if user.days_left >= 0 %}{{ user.days_left }} روز مانده{% else %}{{ user.days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
                 </td>
                 <td class="px-4 py-3">
                     <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ percent }}%"></div>
+                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ user.percent }}%"></div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">{{ used_days }} / {{ total_days }} روز</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ user.used_days }} / {{ user.total_days }} روز</div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-1 text-xs">
+                        <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
+                        <span class="text-gray-600">{{ user.seen_txt }}</span>
+                    </div>
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-1">
-                        <button title="ویرایش" onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ days_left if days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg hover:bg-blue-50 text-blue-600">✏️</button>
+                        <button title="ویرایش" onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ user.days_left if user.days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg hover:bg-blue-50 text-blue-600">✏️</button>
                         <button title="کپی لینک" onclick="copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg hover:bg-green-50 text-green-600">🔗</button>
-                        <button title="QR کد" onclick="showQR('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg hover:bg-purple-50 text-purple-600">▣</button>
+                        <button title="QR کد" onclick="showQR({{ user.id }})" class="p-2 rounded-lg hover:bg-purple-50 text-purple-600">▣</button>
                         <button title="حذف" onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg hover:bg-red-50 text-red-600">🗑️</button>
                     </div>
                 </td>
             </tr>
         {% else %}
-            <tr><td colspan="4" class="px-4 py-10 text-center text-gray-400">کاربری یافت نشد.</td></tr>
+            <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">کاربری یافت نشد.</td></tr>
         {% endfor %}
         </tbody>
     </table>
@@ -94,32 +97,33 @@
 <!-- کارت‌های موبایل -->
 <div class="md:hidden space-y-3">
 {% for user in users %}
-    {% set total_days = (user.expire_date - user.created_at).days %}
-    {% set used_days = (now - user.created_at).days %}
-    {% set percent = (used_days * 100) // total_days if total_days > 0 else 0 %}
-    {% if percent > 100 %}{% set percent = 100 %}{% endif %}
-    {% if percent < 0 %}{% set percent = 0 %}{% endif %}
-    {% set days_left = (user.expire_date - now).days %}
     <div class="bg-white rounded-xl shadow-sm p-4">
         <div class="flex items-center justify-between mb-2">
-            <div class="font-bold">{{ user.username }} <span class="text-xs text-gray-400">#{{ user.id }}</span></div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" class="userCheck w-4 h-4" value="{{ user.id }}" onclick="updateBulk()">
+                <div class="font-bold">{{ user.username }} <span class="text-xs text-gray-400">#{{ user.id }}</span></div>
+            </div>
             {% if not user.is_active %}
                 <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
-            {% elif days_left >= 0 %}
+            {% elif user.days_left >= 0 %}
                 <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
             {% else %}
                 <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
             {% endif %}
         </div>
-        <div class="text-xs text-gray-500 mb-2">{% if days_left >= 0 %}⏳ {{ days_left }} روز مانده{% else %}⌛ {{ days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
+        <div class="text-xs text-gray-500 mb-1">{% if user.days_left >= 0 %}⏳ {{ user.days_left }} روز مانده{% else %}⌛ {{ user.days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
+        <div class="text-xs text-gray-500 mb-2 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
+            آخرین دریافت ساب: {{ user.seen_txt }}
+        </div>
         <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
-            <div class="bg-green-500 h-2 rounded-full" style="width: {{ percent }}%"></div>
+            <div class="bg-green-500 h-2 rounded-full" style="width: {{ user.percent }}%"></div>
         </div>
         <div class="flex items-center justify-between border-t border-gray-100 pt-3">
             <div class="flex gap-1">
-                <button onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ days_left if days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg bg-blue-50 text-blue-600">✏️</button>
+                <button onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ user.days_left if user.days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg bg-blue-50 text-blue-600">✏️</button>
                 <button onclick="copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg bg-green-50 text-green-600">🔗</button>
-                <button onclick="showQR('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg bg-purple-50 text-purple-600">▣</button>
+                <button onclick="showQR({{ user.id }})" class="p-2 rounded-lg bg-purple-50 text-purple-600">▣</button>
             </div>
             <button onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg bg-red-50 text-red-600 text-xs">🗑️ حذف</button>
         </div>
@@ -127,6 +131,15 @@
 {% else %}
     <div class="bg-white rounded-xl shadow-sm p-10 text-center text-gray-400">کاربری یافت نشد.</div>
 {% endfor %}
+</div>
+
+<!-- نوار عملیات گروهی -->
+<div id="bulkBar" class="hidden fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white rounded-full shadow-2xl px-5 py-3 z-50 flex items-center gap-3 text-sm">
+    <span><b id="bulkCount">0</b> مورد انتخاب شده</span>
+    <button onclick="bulkAction('activate')" class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded-full text-xs">✅ فعال</button>
+    <button onclick="bulkAction('deactivate')" class="bg-orange-600 hover:bg-orange-700 px-3 py-1 rounded-full text-xs">⛔ غیرفعال</button>
+    <button onclick="bulkAction('delete')" class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-full text-xs">🗑️ حذف</button>
+    <button onclick="clearSelection()" class="text-gray-400 hover:text-white px-2">✕</button>
 </div>
 
 <!-- مودال ایجاد کاربر -->
@@ -153,7 +166,7 @@
         <form method="post" id="editForm">
             <label class="block text-sm text-gray-600 mb-1">نام کاربری</label>
             <input name="username" id="editUsername" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            <label class="block text-sm text-gray-600 mb-1">اعتبار جدید از امروز (روز)</label>
+            <label class="block text-sm text-gray-600 mb-1">اعتبار از امروز (روز)</label>
             <input name="days" id="editDays" type="number" min="0" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
             <label class="flex items-center gap-2 text-sm text-gray-600 mb-4">
                 <input name="is_active" id="editActive" type="checkbox" class="w-4 h-4">
@@ -171,13 +184,16 @@
 <div id="qrModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="closeModal('qrModal')">
     <div class="bg-white rounded-xl shadow-2xl p-6 text-center" onclick="event.stopPropagation()">
         <h2 class="text-lg font-bold mb-3">▣ QR کد سابسکریپشن</h2>
-        <canvas id="qrCanvas" class="mx-auto mb-3"></canvas>
-        <p id="qrLink" class="text-xs text-gray-500 dir-ltr break-all max-w-[250px] mx-auto mb-3"></p>
+        <img id="qrImg" src="" class="mx-auto mb-3 w-[220px] h-[220px]">
         <button onclick="closeModal('qrModal')" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg">بستن</button>
     </div>
 </div>
 
 <form id="deleteForm" method="post" class="hidden"></form>
+<form id="bulkForm" method="post" class="hidden">
+    <input type="hidden" name="action">
+    <input type="hidden" name="ids">
+</form>
 {% endblock %}
 
 {% block scripts %}
@@ -198,10 +214,35 @@
             f.submit();
         }
     }
-    function showQR(url){
-        document.getElementById('qrLink').textContent = url;
+    function showQR(id){
+        document.getElementById('qrImg').src = '/admin/users/' + id + '/qr?t=' + Date.now();
         document.getElementById('qrModal').classList.remove('hidden');
-        QRCode.toCanvas(document.getElementById('qrCanvas'), url, { width: 220, margin: 2 }, function(err){ if(err) console.error(err); });
+    }
+    function updateBulk(){
+        const boxes = document.querySelectorAll('.userCheck:checked');
+        const all = document.querySelectorAll('.userCheck');
+        document.getElementById('bulkCount').textContent = boxes.length;
+        document.getElementById('bulkBar').classList.toggle('hidden', boxes.length === 0);
+        const sel = document.getElementById('selectAll');
+        if (sel) sel.checked = all.length > 0 && boxes.length === all.length;
+    }
+    function toggleAll(el){
+        document.querySelectorAll('.userCheck').forEach(b => b.checked = el.checked);
+        updateBulk();
+    }
+    function clearSelection(){
+        document.querySelectorAll('.userCheck').forEach(b => b.checked = false);
+        updateBulk();
+    }
+    function bulkAction(action){
+        const ids = [...document.querySelectorAll('.userCheck:checked')].map(b => b.value).join(',');
+        if(!ids) return;
+        if(action === 'delete' && !confirm('کاربران انتخاب‌شده برای همیشه حذف شوند؟')) return;
+        const f = document.getElementById('bulkForm');
+        f.action = '/admin/users/bulk';
+        f.querySelector('[name=action]').value = action;
+        f.querySelector('[name=ids]').value = ids;
+        f.submit();
     }
 </script>
 {% endblock %}
