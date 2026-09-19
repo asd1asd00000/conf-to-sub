@@ -65,8 +65,9 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
         print(f"⚠️ درخواست ساب برای UUID نامعتبر: {user_uuid[:8]}...")
         return _encode_and_respond(_make_fake_configs(MSG_DELETED))
 
-    # به‌روزرسانی آخرین دیده‌شدن
+    # ثبت آخرین دیده‌شدن + افزایش شمارنده آپدیت
     user.last_seen = datetime.utcnow()
+    user.sub_update_count = (user.sub_update_count or 0) + 1
     db.commit()
 
     # حالت ۲: کاربر غیرفعال شده است
