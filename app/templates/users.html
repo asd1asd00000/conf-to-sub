@@ -117,7 +117,13 @@
                 <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
             {% endif %}
         </div>
-        <div class="text-xs text-gray-500 mb-1">{% if user.days_left >= 0 %}⏳ {{ user.days_left }} روز مانده{% else %}⌛ {{ user.days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
+<div class="text-xs text-gray-500 mb-1">
+    {% if user.expired %}
+        ⌛ منقضی شده
+    {% else %}
+        ⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه
+    {% endif %}
+</div>
         <div class="text-xs text-gray-500 mb-2 flex items-center gap-1">
             <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
             آخرین دریافت ساب: {{ user.seen_txt }}
