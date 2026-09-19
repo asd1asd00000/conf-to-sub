@@ -150,4 +150,29 @@
     }
     function updateBulkConfigs(){
         const boxes = document.querySelectorAll('.configCheck:checked');
-        document.getElementById
+        document.getElementById('bulkCountConfigs').textContent = boxes.length;
+        document.getElementById('bulkBarConfigs').classList.toggle('hidden', boxes.length === 0);
+        const sel = document.getElementById('selectAllConfigs');
+        const all = document.querySelectorAll('.configCheck');
+        if (sel) sel.checked = all.length > 0 && boxes.length === all.length;
+    }
+    function toggleAllConfigs(el){
+        document.querySelectorAll('.configCheck').forEach(b => b.checked = el.checked);
+        updateBulkConfigs();
+    }
+    function clearSelectionConfigs(){
+        document.querySelectorAll('.configCheck').forEach(b => b.checked = false);
+        updateBulkConfigs();
+    }
+    function bulkActionConfigs(action){
+        const ids = [...document.querySelectorAll('.configCheck:checked')].map(b => b.value).join(',');
+        if(!ids) return;
+        if(action === 'delete' && !confirm('کانفیگ‌های انتخاب‌شده حذف شوند؟')) return;
+        const f = document.getElementById('bulkConfigForm');
+        f.action = '/admin/configs/bulk';
+        f.querySelector('[name=action]').value = action;
+        f.querySelector('[name=ids]').value = ids;
+        f.submit();
+    }
+</script>
+{% endblock %}
