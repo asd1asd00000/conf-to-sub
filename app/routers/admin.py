@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form, HTTPException
+from fastapi import APIRouter, Request, Depends, Form, HTTPException, Response
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -7,9 +7,27 @@ from ..models import User, Config, process_config_remark
 from ..services import health_checker
 from datetime import datetime, timedelta
 import uuid
+import io
+import math
+import qrcode
+from qrcode.image.svg import SvgPathImage
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+def time_ago(dt, now):
+    if not dt:
+        return "هرگز"
+    sec = (now - dt).total_seconds()
+    if sec < 0:
+        sec = 0
+    if sec < 60:
+        return "لحظاتی پیش"
+    if sec < 3600:
+        return f"{int(sec // 60)} دقیقه پیش"
+    if sec < 86400:
+        return f"{int(sec // 3600)} ساعت پیش"
+    return f"{int(sec // 86400)} روز پیش"
 
 @router.get("/")
 def dashboard(request: Request, db: Session = Depends(get_db)):
@@ -28,6 +46,18 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
         query = query.filter(User.username.contains(q))
     users = query.order_by(User.id.desc()).all()
     now = datetime.utcnow()
+
+    # محاسبات نمایشی برای هر کاربر (با گرد کردن به بالا برای رفع باگ کسر روز)
+    for u in users:
+        u.days_left = math.ceil((u.expire_date - now).total_seconds() / 86400)
+        total = (u.expire_date - u.created_at).days
+        u.total_days = total if total > 0 else 1
+        used = (now - u.created_at).days
+        u.used_days = max(0, min(used, u.total_days))
+        u.percent = max(0, min(100, (u.used_days * 100) // u.total_days))
+        u.seen_txt = time_ago(u.last_seen, now)
+        u.seen_recent = bool(u.last_seen and (now - u.last_seen).total_seconds() < 86400)
+
     total_count = db.query(User).count()
     active_count = db.query(User).filter(User.is_active == True, User.expire_date > now).count()
     expired_count = db.query(User).filter(User.expire_date < now).count()
@@ -47,6 +77,43 @@ def create_user(request: Request, username: str = Form(...), days: int = Form(..
     db.commit()
     request.session["message"] = f"👤 کاربر {username} با موفقیت ساخته شد."
     return RedirectResponse(url="/admin/users", status_code=303)
+
+@router.post("/users/bulk")
+def bulk_users(request: Request, action: str = Form(...), ids: str = Form(...), db: Session = Depends(get_db)):
+    id_list = [int(i) for i in ids.split(",") if i.strip().isdigit()]
+    if not id_list:
+        request.session["message"] = "⚠️ کاربری انتخاب نشده است."
+        return RedirectResponse(url="/admin/users", status_code=303)
+    users = db.query(User).filter(User.id.in_(id_list)).all()
+    count = len(users)
+    if action == "delete":
+        for u in users:
+            db.delete(u)
+        msg = f"🗑️ {count} کاربر حذف شد"
+    elif action == "activate":
+        for u in users:
+            u.is_active = True
+        msg = f"✅ {count} کاربر فعال شد"
+    elif action == "deactivate":
+        for u in users:
+            u.is_active = False
+        msg = f"⛔ {count} کاربر غیرفعال شد"
+    else:
+        msg = "⚠️ عملیات نامعتبر"
+    db.commit()
+    request.session["message"] = msg
+    return RedirectResponse(url="/admin/users", status_code=303)
+
+@router.get("/users/{user_id}/qr")
+def user_qr(user_id: int, request: Request, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    url = f"{request.url.scheme}://{request.url.netloc}/sub/{user.sub_uuid}"
+    img = qrcode.make(url, image_factory=SvgPathImage)
+    buf = io.BytesIO()
+    img.save(buf)
+    return Response(content=buf.getvalue(), media_type="image/svg+xml")
 
 @router.post("/users/{user_id}/edit")
 def edit_user(request: Request, user_id: int, username: str = Form(...), days: int = Form(...), is_active: bool = Form(False), db: Session = Depends(get_db)):
