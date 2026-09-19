@@ -260,10 +260,11 @@ async def add_config(request: Request, raw_text: str = Form(...), db: Session = 
     return RedirectResponse(url="/admin/", status_code=303)
 
 # ========== تنظیمات ==========
-
 @router.get("/settings")
 def settings_page(request: Request, db: Session = Depends(get_db)):
     message = request.session.pop("message", None)
+    
+    # تنظیمات اطلاع‌رسانی
     broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
     broadcast_text = get_setting(db, "broadcast_text", "")
     
@@ -275,11 +276,7 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
     reminder_text = get_setting(db, "reminder_text",
         "۲۴ ساعت از آخرین آپدیت شما گذشته\nلطفاً لینک اشتراک را آپدیت کنید تا سرورها لود شوند")
     
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
-        "message": message,
-        "active_page": "settings",
-            # تنظیمات بک‌آپ
+    # تنظیمات بک‌آپ
     backup_enabled = get_setting(db, "backup_enabled", "0") == "1"
     try:
         backup_hours = int(get_setting(db, "backup_hours", "0") or "0")
@@ -288,10 +285,20 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
     backup_email_to = get_setting(db, "backup_email_to", "")
     backup_email_from = get_setting(db, "backup_email_from", "")
     backup_last_sent = get_setting(db, "backup_last_sent", "")
+    
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "message": message,
+        "active_page": "settings",
         "broadcast_enabled": broadcast_enabled,
         "broadcast_text": broadcast_text,
         "reminder_hours": reminder_hours,
-        "reminder_text": reminder_text
+        "reminder_text": reminder_text,
+        "backup_enabled": backup_enabled,
+        "backup_hours": backup_hours,
+        "backup_email_to": backup_email_to,
+        "backup_email_from": backup_email_from,
+        "backup_last_sent": backup_last_sent
     })
 
 @router.post("/settings/broadcast")
