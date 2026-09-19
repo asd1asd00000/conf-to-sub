@@ -47,9 +47,22 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
     users = query.order_by(User.id.desc()).all()
     now = datetime.utcnow()
 
-    # محاسبات نمایشی برای هر کاربر (با گرد کردن به بالا برای رفع باگ کسر روز)
+    # محاسبات دقیق زمان (روز + ساعت + دقیقه)
     for u in users:
-        u.days_left = math.ceil((u.expire_date - now).total_seconds() / 86400)
+        delta = u.expire_date - now
+        total_seconds = delta.total_seconds()
+        
+        if total_seconds < 0:
+            u.days_left = 0
+            u.hours_left = 0
+            u.mins_left = 0
+            u.expired = True
+        else:
+            u.days_left = int(total_seconds // 86400)
+            u.hours_left = int((total_seconds % 86400) // 3600)
+            u.mins_left = int((total_seconds % 3600) // 60)
+            u.expired = False
+        
         total = (u.expire_date - u.created_at).days
         u.total_days = total if total > 0 else 1
         used = (now - u.created_at).days
@@ -136,6 +149,36 @@ def delete_user(request: Request, user_id: int, db: Session = Depends(get_db)):
         db.commit()
         request.session["message"] = f"🗑️ کاربر {name} حذف شد."
     return RedirectResponse(url="/admin/users", status_code=303)
+
+# ========== کانفیگ‌ها ==========
+
+@router.post("/configs/{config_id}/delete")
+def delete_config(request: Request, config_id: int, db: Session = Depends(get_db)):
+    config = db.query(Config).filter(Config.id == config_id).first()
+    if config:
+        remark = config.remark
+        db.delete(config)
+        db.commit()
+        request.session["message"] = f"🗑️ کانفیگ {remark} حذف شد."
+    return RedirectResponse(url="/admin/", status_code=303)
+
+@router.post("/configs/bulk")
+def bulk_configs(request: Request, action: str = Form(...), ids: str = Form(...), db: Session = Depends(get_db)):
+    id_list = [int(i) for i in ids.split(",") if i.strip().isdigit()]
+    if not id_list:
+        request.session["message"] = "⚠️ کانفیگی انتخاب نشده است."
+        return RedirectResponse(url="/admin/", status_code=303)
+    configs = db.query(Config).filter(Config.id.in_(id_list)).all()
+    count = len(configs)
+    if action == "delete":
+        for c in configs:
+            db.delete(c)
+        msg = f"🗑️ {count} کانفیگ حذف شد"
+    else:
+        msg = "⚠️ عملیات نامعتبر"
+    db.commit()
+    request.session["message"] = msg
+    return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-config")
 async def add_config(request: Request, raw_text: str = Form(...), db: Session = Depends(get_db)):
