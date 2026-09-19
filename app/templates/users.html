@@ -93,6 +93,7 @@
                         <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
                         <span class="text-gray-600">{{ user.seen_txt }}</span>
                     </div>
+                    <div class="text-xs text-gray-400 mt-1">🔄 {{ user.sub_update_count or 0 }} بار آپدیت</div>
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-1">
