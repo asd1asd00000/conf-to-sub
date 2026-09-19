@@ -56,16 +56,22 @@
                     <div class="font-bold">{{ user.username }}</div>
                     <div class="text-xs text-gray-400">#{{ user.id }}</div>
                 </td>
-                <td class="px-4 py-3">
-                    {% if not user.is_active %}
-                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
-                    {% elif user.days_left >= 0 %}
-                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
-                    {% else %}
-                        <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
-                    {% endif %}
-                    <div class="text-xs text-gray-500 mt-1">{% if user.days_left >= 0 %}{{ user.days_left }} روز مانده{% else %}{{ user.days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
-                </td>
+<td class="px-4 py-3">
+    {% if not user.is_active %}
+        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
+    {% elif user.expired %}
+        <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
+    {% else %}
+        <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
+    {% endif %}
+    <div class="text-xs text-gray-500 mt-1">
+        {% if user.expired %}
+            منقضی شده
+        {% else %}
+            {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه
+        {% endif %}
+    </div>
+</td>
                 <td class="px-4 py-3">
                     <div class="w-full bg-gray-200 rounded-full h-2">
                         <div class="bg-green-500 h-2 rounded-full" style="width: {{ user.percent }}%"></div>
