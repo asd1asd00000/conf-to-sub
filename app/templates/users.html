@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}کاربران - Gift Panel{% endblock %}
+{% block content %}
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">👥 کاربران</h1>
+        <p class="text-gray-500 text-sm mt-1">مدیریت، ویرایش و سازماندهی حساب‌های کاربری</p>
+    </div>
+    <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">➕ ایجاد کاربر</button>
+</div>
+
+<!-- آمار -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-gray-600 text-sm"><span class="w-2 h-2 rounded-full bg-green-500"></span> کاربران فعال</div>
+        <div class="text-2xl font-bold">{{ active_count }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-gray-600 text-sm"><span class="w-2 h-2 rounded-full bg-orange-500"></span> منقضی شده</div>
+        <div class="text-2xl font-bold">{{ expired_count }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-gray-600 text-sm"><span class="w-2 h-2 rounded-full bg-blue-500"></span> کل کاربران</div>
+        <div class="text-2xl font-bold">{{ total_count }}</div>
+    </div>
+</div>
+
+<!-- جستجو -->
+<div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+    <form method="get" action="/admin/users" class="flex gap-2">
+        <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+        <button class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">جستجو</button>
+        {% if q %}<a href="/admin/users" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">حذف فیلتر</a>{% endif %}
+    </form>
+</div>
+
+<!-- جدول دسکتاپ -->
+<div class="bg-white rounded-xl shadow-sm hidden md:block overflow-x-auto">
+    <table class="w-full text-sm text-right">
+        <thead class="bg-gray-50 text-gray-500">
+            <tr>
+                <th class="px-4 py-3">نام کاربری</th>
+                <th class="px-4 py-3">وضعیت / انقضا</th>
+                <th class="px-4 py-3 w-64">مصرف زمان</th>
+                <th class="px-4 py-3">عملیات</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+        {% for user in users %}
+            {% set total_days = (user.expire_date - user.created_at).days %}
+            {% set used_days = (now - user.created_at).days %}
+            {% set percent = (used_days * 100) // total_days if total_days > 0 else 0 %}
+            {% if percent > 100 %}{% set percent = 100 %}{% endif %}
+            {% if percent < 0 %}{% set percent = 0 %}{% endif %}
+            {% set days_left = (user.expire_date - now).days %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <div class="font-bold">{{ user.username }}</div>
+                    <div class="text-xs text-gray-400">#{{ user.id }}</div>
+                </td>
+                <td class="px-4 py-3">
+                    {% if not user.is_active %}
+                        <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
+                    {% elif days_left >= 0 %}
+                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
+                    {% else %}
+                        <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
+                    {% endif %}
+                    <div class="text-xs text-gray-500 mt-1">{% if days_left >= 0 %}{{ days_left }} روز مانده{% else %}{{ days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ percent }}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">{{ used_days }} / {{ total_days }} روز</div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center gap-1">
+                        <button title="ویرایش" onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ days_left if days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg hover:bg-blue-50 text-blue-600">✏️</button>
+                        <button title="کپی لینک" onclick="copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg hover:bg-green-50 text-green-600">🔗</button>
+                        <button title="QR کد" onclick="showQR('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg hover:bg-purple-50 text-purple-600">▣</button>
+                        <button title="حذف" onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg hover:bg-red-50 text-red-600">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="px-4 py-10 text-center text-gray-400">کاربری یافت نشد.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- کارت‌های موبایل -->
+<div class="md:hidden space-y-3">
+{% for user in users %}
+    {% set total_days = (user.expire_date - user.created_at).days %}
+    {% set used_days = (now - user.created_at).days %}
+    {% set percent = (used_days * 100) // total_days if total_days > 0 else 0 %}
+    {% if percent > 100 %}{% set percent = 100 %}{% endif %}
+    {% if percent < 0 %}{% set percent = 0 %}{% endif %}
+    {% set days_left = (user.expire_date - now).days %}
+    <div class="bg-white rounded-xl shadow-sm p-4">
+        <div class="flex items-center justify-between mb-2">
+            <div class="font-bold">{{ user.username }} <span class="text-xs text-gray-400">#{{ user.id }}</span></div>
+            {% if not user.is_active %}
+                <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
+            {% elif days_left >= 0 %}
+                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
+            {% else %}
+                <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
+            {% endif %}
+        </div>
+        <div class="text-xs text-gray-500 mb-2">{% if days_left >= 0 %}⏳ {{ days_left }} روز مانده{% else %}⌛ {{ days_left * -1 }} روز پیش منقضی شده{% endif %}</div>
+        <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div class="bg-green-500 h-2 rounded-full" style="width: {{ percent }}%"></div>
+        </div>
+        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
+            <div class="flex gap-1">
+                <button onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ days_left if days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg bg-blue-50 text-blue-600">✏️</button>
+                <button onclick="copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg bg-green-50 text-green-600">🔗</button>
+                <button onclick="showQR('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg bg-purple-50 text-purple-600">▣</button>
+            </div>
+            <button onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg bg-red-50 text-red-600 text-xs">🗑️ حذف</button>
+        </div>
+    </div>
+{% else %}
+    <div class="bg-white rounded-xl shadow-sm p-10 text-center text-gray-400">کاربری یافت نشد.</div>
+{% endfor %}
+</div>
+
+<!-- مودال ایجاد کاربر -->
+<div id="createModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+        <h2 class="text-lg font-bold mb-4">➕ ایجاد کاربر جدید</h2>
+        <form method="post" action="/admin/users/create">
+            <label class="block text-sm text-gray-600 mb-1">نام کاربری</label>
+            <input name="username" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="block text-sm text-gray-600 mb-1">مدت اعتبار (روز)</label>
+            <input name="days" type="number" min="1" value="30" required class="w-full p-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <div class="flex gap-2">
+                <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">ذخیره</button>
+                <button type="button" onclick="closeModal('createModal')" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- مودال ویرایش -->
+<div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+        <h2 class="text-lg font-bold mb-4">✏️ ویرایش کاربر</h2>
+        <form method="post" id="editForm">
+            <label class="block text-sm text-gray-600 mb-1">نام کاربری</label>
+            <input name="username" id="editUsername" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="block text-sm text-gray-600 mb-1">اعتبار جدید از امروز (روز)</label>
+            <input name="days" id="editDays" type="number" min="0" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                <input name="is_active" id="editActive" type="checkbox" class="w-4 h-4">
+                حساب فعال باشد
+            </label>
+            <div class="flex gap-2">
+                <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">ذخیره تغییرات</button>
+                <button type="button" onclick="closeModal('editModal')" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- مودال QR -->
+<div id="qrModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="closeModal('qrModal')">
+    <div class="bg-white rounded-xl shadow-2xl p-6 text-center" onclick="event.stopPropagation()">
+        <h2 class="text-lg font-bold mb-3">▣ QR کد سابسکریپشن</h2>
+        <canvas id="qrCanvas" class="mx-auto mb-3"></canvas>
+        <p id="qrLink" class="text-xs text-gray-500 dir-ltr break-all max-w-[250px] mx-auto mb-3"></p>
+        <button onclick="closeModal('qrModal')" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg">بستن</button>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" class="hidden"></form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openCreateModal(){ document.getElementById('createModal').classList.remove('hidden'); }
+    function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+    function openEditModal(id, username, days, active){
+        document.getElementById('editForm').action = '/admin/users/' + id + '/edit';
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editDays').value = days;
+        document.getElementById('editActive').checked = active;
+        document.getElementById('editModal').classList.remove('hidden');
+    }
+    function deleteUser(id, name){
+        if(confirm('کاربر "' + name + '" برای همیشه حذف شود؟')){
+            const f = document.getElementById('deleteForm');
+            f.action = '/admin/users/' + id + '/delete';
+            f.submit();
+        }
+    }
+    function showQR(url){
+        document.getElementById('qrLink').textContent = url;
+        document.getElementById('qrModal').classList.remove('hidden');
+        QRCode.toCanvas(document.getElementById('qrCanvas'), url, { width: 220, margin: 2 }, function(err){ if(err) console.error(err); });
+    }
+</script>
+{% endblock %}
