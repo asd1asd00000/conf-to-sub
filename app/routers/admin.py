@@ -214,46 +214,54 @@ def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_e
     set_setting(db, "broadcast_text", broadcast_text.strip())
     request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
     return RedirectResponse(url="/admin/settings", status_code=303)
+@router.post("/add-config")
 async def add_config(request: Request, raw_text: str = Form(...), db: Session = Depends(get_db)):
-    lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
-    now = datetime.utcnow()
+    try:
+        lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
+        now = datetime.utcnow()
 
-    if not lines:
-        request.session["message"] = "⚠️ هیچ کانفیگی وارد نشد."
-        return RedirectResponse(url="/admin/", status_code=303)
+        if not lines:
+            request.session["message"] = "⚠️ هیچ کانفیگی وارد نشد."
+            return RedirectResponse(url="/admin/", status_code=303)
 
-    metas = []
-    for line in lines:
-        protocol = line.split("://")[0] if "://" in line else "unknown"
-        original_remark = health_checker.get_remark(line) or "Unknown"
-        base_remark = process_config_remark(original_remark, now)
-        metas.append({"line": line, "base_remark": base_remark, "protocol": protocol})
+        metas = []
+        for line in lines:
+            protocol = line.split("://")[0] if "://" in line else "unknown"
+            original_remark = health_checker.get_remark(line) or "Unknown"
+            base_remark = process_config_remark(original_remark, now)
+            metas.append({"line": line, "base_remark": base_remark, "protocol": protocol})
 
-    print(f"🔍 بررسی {len(metas)} کانفیگ...")
-    results = await health_checker.check_configs([m["line"] for m in metas])
+        print(f"🔍 بررسی {len(metas)} کانفیگ...", flush=True)
+        results = await health_checker.check_configs([m["line"] for m in metas])
 
-    saved = 0
-    verified = 0
-    discarded = 0
+        saved = 0
+        verified = 0
+        discarded = 0
 
-    for meta, res in zip(metas, results):
-        if res == health_checker.RESULT_DISCARD:
-            discarded += 1
-            continue
-        remark = meta["base_remark"]
-        if res == health_checker.RESULT_VERIFIED:
-            remark = f"{health_checker.MARK_OK} {remark}"
-            verified += 1
-        db.add(Config(raw_config=meta["line"], remark=remark, protocol=meta["protocol"], added_time=now))
-        saved += 1
+        for meta, res in zip(metas, results):
+            if res == health_checker.RESULT_DISCARD:
+                discarded += 1
+                continue
+            remark = meta["base_remark"]
+            if res == health_checker.RESULT_VERIFIED:
+                remark = f"{health_checker.MARK_OK} {remark}"
+                verified += 1
+            db.add(Config(raw_config=meta["line"], remark=remark, protocol=meta["protocol"], added_time=now))
+            saved += 1
 
-    db.commit()
+        db.commit()
 
-    msg = f"💾 {saved} کانفیگ ذخیره شد"
-    if verified:
-        msg += f" | {verified} مورد تأیید شد ✅"
-    if discarded:
-        msg += f" | ⚠️ {discarded} ورودی نامعتبر دور ریخته شد"
-    request.session["message"] = msg
-    print(f"🏁 {msg}")
+        msg = f"💾 {saved} کانفیگ ذخیره شد"
+        if verified:
+            msg += f" | {verified} مورد تأیید شد ✅"
+        if discarded:
+            msg += f" | ⚠️ {discarded} ورودی نامعتبر دور ریخته شد"
+        request.session["message"] = msg
+        print(f"🏁 {msg}", flush=True)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        request.session["message"] = f"❌ خطا هنگام ذخیره: {e}"
+
     return RedirectResponse(url="/admin/", status_code=303)
