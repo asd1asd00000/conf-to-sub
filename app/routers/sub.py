@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
+from urllib.parse import quote
 from ..database import get_db
 from ..models import User, Config
 from datetime import datetime
@@ -7,25 +8,38 @@ import base64
 
 router = APIRouter()
 
-# پیام‌های سفارشی (هر زمان خواستید می‌توانید تغییر دهید)
-MSG_EXPIRED = "⏰ زمان اشتراک شما به پایان رسیده است. برای تمدید با پشتیبانی تماس بگیرید."
-MSG_INACTIVE = "⛔ حساب شما موقتاً غیرفعال شده است. با پشتیبانی تماس بگیرید."
-MSG_DELETED = "❌ حساب شما غیرفعال شده است. برای اطلاعات بیشتر با پشتیبانی تماس بگیرید."
+# ================= پیام‌های چندخطی =================
+# خطوط مشترک پشتیبانی (می‌توانید تغییر دهید)
+SUPPORT_LINES = [
+    "📞 با پشتیبانی تماس بگیرید",
+    "✈️ تلگرام: @vpnposhtibanivpn",
+    "🔴 روبیکا: @okla_2027",
+]
+
+MSG_EXPIRED = ["⏰ زمان اشتراک شما به پایان رسیده"] + SUPPORT_LINES
+MSG_INACTIVE = ["⛔ حساب شما غیرفعال شده است"] + SUPPORT_LINES
+MSG_DELETED = ["❌ حساب شما حذف شده است"] + SUPPORT_LINES
+MSG_NO_CONFIG = ["⚠️ فعلاً کانفیگی در دسترس نیست", "🔄 بعداً دوباره آپدیت کنید"]
 
 
-def _make_fake_config(message: str) -> str:
+def _make_fake_config(message: str, idx: int = 0) -> str:
     """
-    ساخت یک کانفیگ vless ساختگی که فقط پیام را در کلاینت نمایش می‌دهد.
-    چون آدرس سرور نامعتبر است، اتصال برقرار نمی‌شود ولی نام کانفیگ (پیام) دیده می‌شود.
+    ساخت یک کانفیگ vless ساختگی که فقط پیام را نمایش می‌دهد.
+    برای هر خط یک UUID و پورت متفاوت می‌سازیم تا کلاینت‌ها آن‌ها را
+    به عنوان ردیف‌های جداگانه نگه دارند (بدون حذف تکراری).
     """
-    # کاراکترهای غیرمجاز در URL را escape می‌کنیم
-    from urllib.parse import quote
     safe_msg = quote(message, safe="")
-    return f"vless://00000000-0000-0000-0000-000000000000@expire.gift-panel.local:443?security=none&type=tcp#{safe_msg}"
+    uuid = f"00000000-0000-0000-0000-00000000000{idx % 10}"
+    port = 443 + idx
+    return f"vless://{uuid}@expire.gift-panel.local:{port}?security=none&type=tcp#{safe_msg}"
+
+
+def _make_fake_configs(lines) -> str:
+    """تبدیل لیست پیام‌ها به چند خط کانفیگ ساختگی."""
+    return "\n".join(_make_fake_config(line, i) for i, line in enumerate(lines))
 
 
 def _encode_and_respond(configs_text: str, user=None) -> Response:
-    """تبدیل متن کانفیگ‌ها به Base64 و ساخت پاسخ با هدرهای استاندارد."""
     encoded = base64.b64encode(configs_text.encode("utf-8")).decode("utf-8")
     headers = {"Profile-Update-Interval": "12"}
     if user:
@@ -44,8 +58,7 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
     # حالت ۱: کاربر حذف شده است
     if not user:
         print(f"⚠️ درخواست ساب برای UUID نامعتبر: {user_uuid[:8]}...")
-        fake_config = _make_fake_config(MSG_DELETED)
-        return _encode_and_respond(fake_config)
+        return _encode_and_respond(_make_fake_configs(MSG_DELETED))
 
     # به‌روزرسانی آخرین دیده‌شدن
     user.last_seen = datetime.utcnow()
@@ -53,20 +66,16 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
 
     # حالت ۲: کاربر غیرفعال شده است
     if not user.is_active:
-        fake_config = _make_fake_config(MSG_INACTIVE)
-        return _encode_and_respond(fake_config, user)
+        return _encode_and_respond(_make_fake_configs(MSG_INACTIVE), user)
 
     # حالت ۳: کاربر منقضی شده است
     if user.expire_date < datetime.utcnow():
-        fake_config = _make_fake_config(MSG_EXPIRED)
-        return _encode_and_respond(fake_config, user)
+        return _encode_and_respond(_make_fake_configs(MSG_EXPIRED), user)
 
-    # حالت ۴: کاربر فعال - کانفیگ‌های واقعی را بده
+    # حالت ۴: کاربر فعال - کانفیگ‌های واقعی
     configs = db.query(Config).all()
     if not configs:
-        # اگر هیچ کانفیگی در پنل نباشد، یک پیام موقت بده
-        fake_config = _make_fake_config("⚠️ در حال حاضر هیچ کانفیگی در دسترس نیست. لطفاً بعداً تلاش کنید.")
-        return _encode_and_respond(fake_config, user)
+        return _encode_and_respond(_make_fake_configs(MSG_NO_CONFIG), user)
 
     config_list = []
     for config in configs:
