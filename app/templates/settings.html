@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}تنظیمات - Gift Panel{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">⚙️ تنظیمات</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- اطلاع‌رسانی -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500">
+        <h2 class="text-xl font-semibold mb-2 text-blue-600">📢 اطلاع‌رسانی به کاربران</h2>
+        <p class="text-xs text-gray-500 mb-4">پیام شما در بالای لیست سابسکریپشن همه کاربران فعال نمایش داده می‌شود.</p>
+        <form method="post" action="/admin/settings/broadcast">
+            <label class="flex items-center gap-2 text-sm text-gray-700 mb-3">
+                <input type="checkbox" name="broadcast_enabled" {{ 'checked' if broadcast_enabled }} class="w-4 h-4">
+                اطلاع‌رسانی فعال باشد
+            </label>
+            <textarea name="broadcast_text" rows="4" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" placeholder="خط اول: امشب ساعت ۱۲ سرورها به‌روزرسانی می‌شوند&#10;خط دوم: لطفاً ساب را دوباره آپدیت کنید">{{ broadcast_text }}</textarea>
+            <p class="text-xs text-gray-400 mb-3">💡 هر خط = یک ردیف در کلاینت کاربر. خطوط کوتاه‌تر از ۳۵ کاراکتر بهتر نمایش داده می‌شوند.</p>
+            <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">ذخیره اطلاع‌رسانی</button>
+        </form>
+    </div>
+
+    <!-- پیش‌نمایش -->
+    <div class="bg-white p-6 rounded-xl shadow-sm">
+        <h2 class="text-xl font-semibold mb-4">👀 پیش‌نمایش در کلاینت کاربر</h2>
+        <div class="space-y-2">
+            {% if broadcast_enabled and broadcast_text %}
+                {% for line in broadcast_text.split('\n') %}
+                    {% if line.strip() %}
+                    <div class="bg-blue-50 border border-blue-200 rounded p-2 text-xs text-gray-700 truncate">📢 {{ line.strip() }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-gray-400 text-sm py-6">اطلاع‌رسانی غیرفعال است.</div>
+            {% endif %}
+            <div class="bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-500 truncate dir-ltr text-left">✅ gift-panel-2026.09.19-11:33 🇩🇪 DE</div>
+            <div class="bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-500 truncate dir-ltr text-left">✅ gift-panel-2026.09.19-11:35 🇺🇸 US</div>
+        </div>
+        <p class="text-xs text-gray-400 mt-3">↑ پیام‌های شما بالای کانفیگ‌های واقعی قرار می‌گیرند.</p>
+    </div>
+
+    <!-- بخش‌های آینده (غیرفعال) -->
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm opacity-60">
+        <h2 class="text-lg font-semibold mb-2 text-gray-500">🔐 تغییر نام کاربری و رمز عبور</h2>
+        <p class="text-xs text-gray-400">به‌زودی... (مرحله بعد: سیستم لاگین)</p>
+    </div>
+    <div class="bg-gray-50 p-6 rounded-xl shadow-sm opacity-60">
+        <h2 class="text-lg font-semibold mb-2 text-gray-500">💾 بک‌آپ و ریستور (بک‌آپ خودکار به جیمیل)</h2>
+        <p class="text-xs text-gray-400">به‌زودی... (مرحله بعد: پشتیبان‌گیری)</p>
+    </div>
+
+</div>
+{% endblock %}
