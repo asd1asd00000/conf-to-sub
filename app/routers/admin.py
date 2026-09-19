@@ -30,13 +30,24 @@ def time_ago(dt, now):
     return f"{int(sec // 86400)} روز پیش"
 
 @router.get("/")
-def dashboard(request: Request, db: Session = Depends(get_db)):
-    configs = db.query(Config).all()
+def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session = Depends(get_db)):
+    # صفحه‌بندی کانفیگ‌ها
+    if per_page not in (10, 20, 50, 100):
+        per_page = 20
+    total_count = db.query(Config).count()
+    total_pages = max(1, math.ceil(total_count / per_page))
+    if page < 1:
+        page = 1
+    if page > total_pages:
+        page = total_pages
+    configs = db.query(Config).order_by(Config.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
     message = request.session.pop("message", None)
     base_url = f"{request.url.scheme}://{request.url.netloc}"
     return templates.TemplateResponse("dashboard.html", {
         "request": request, "configs": configs, "now": datetime.utcnow(),
-        "message": message, "active_page": "dashboard", "base_url": base_url
+        "message": message, "active_page": "dashboard", "base_url": base_url,
+        "page": page, "per_page": per_page, "total_pages": total_pages, "total_count": total_count
     })
 
 @router.get("/users")
@@ -61,6 +72,9 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
             u.days_left = int(remain_sec // 86400)
             u.hours_left = int((remain_sec % 86400) // 3600)
             u.mins_left = int((remain_sec % 3600) // 60)
+
+        # روزهای فرم ویرایش: گرد به بالا (رفع باگ کسر روز)
+        u.edit_days = max(0, math.ceil(remain_sec / 86400))
 
         u.used_txt = f"{int(used_sec // 86400)} روز و {int((used_sec % 86400) // 3600)} ساعت"
         u.total_txt = f"{int(total_sec // 86400)} روز و {int((total_sec % 86400) // 3600)} ساعت"
