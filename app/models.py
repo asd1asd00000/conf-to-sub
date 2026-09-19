@@ -25,7 +25,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_seen = Column(DateTime, nullable=True)
-        sub_update_count = Column(Integer, default=0)
+    sub_update_count = Column(Integer, default=0)
 
 class Config(Base):
     __tablename__ = "configs"
