@@ -86,7 +86,7 @@
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-1">
-                        <button title="ویرایش" onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ user.days_left if user.days_left > 0 else 0 }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg hover:bg-blue-50 text-blue-600">✏️</button>
+                        <button title="ویرایش" onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ user.edit_days }}, {{ "true" if user.is_active else "false" }})' class="p-2 rounded-lg hover:bg-blue-50 text-blue-600">✏️</button>
                         <button title="کپی لینک" onclick="copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg hover:bg-green-50 text-green-600">🔗</button>
                         <button title="QR کد" onclick="showQR({{ user.id }})" class="p-2 rounded-lg hover:bg-purple-50 text-purple-600">▣</button>
                         <button title="حذف" onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg hover:bg-red-50 text-red-600">🗑️</button>
