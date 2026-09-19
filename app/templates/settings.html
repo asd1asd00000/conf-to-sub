@@ -61,10 +61,74 @@
         <h2 class="text-lg font-semibold mb-2 text-gray-500">🔐 تغییر نام کاربری و رمز عبور</h2>
         <p class="text-xs text-gray-400">به‌زودی... (مرحله بعد: سیستم لاگین)</p>
     </div>
-    <div class="bg-gray-50 p-6 rounded-xl shadow-sm opacity-60">
-        <h2 class="text-lg font-semibold mb-2 text-gray-500">💾 بک‌آپ و ریستور (بک‌آپ خودکار به جیمیل)</h2>
-        <p class="text-xs text-gray-400">به‌زودی... (مرحله بعد: پشتیبان‌گیری)</p>
+<!-- بک‌آپ خودکار -->
+<div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-emerald-500">
+    <h2 class="text-xl font-semibold mb-2 text-emerald-600">💾 بک‌آپ خودکار به جیمیل</h2>
+    <p class="text-xs text-gray-500 mb-4">فایل زیپ رمزدار (AES-256) شامل کاربران و تنظیمات. کانفیگ‌ها بک‌آپ نمی‌شوند.</p>
+    
+    {% if backup_last_sent %}
+    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-xs">
+        <b>⏰ آخرین بک‌آپ:</b> {{ backup_last_sent }}
     </div>
+    {% endif %}
+    
+    <form method="post" action="/admin/settings/backup">
+        <label class="flex items-center gap-2 text-sm text-gray-700 mb-3">
+            <input type="checkbox" name="backup_enabled" {{ 'checked' if backup_enabled }} class="w-4 h-4">
+            بک‌آپ خودکار فعال باشد
+        </label>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+                <label class="block text-xs text-gray-600 mb-1">📧 جیمیل مقصد (دریافت‌کننده)</label>
+                <input type="email" name="backup_email_to" value="{{ backup_email_to }}" placeholder="you@gmail.com" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-600 mb-1">📤 جیمیل فرستنده (اختیاری)</label>
+                <input type="email" name="backup_email_from" value="{{ backup_email_from }}" placeholder="همان مقصد اگر خالی باشد" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+                <label class="block text-xs text-gray-600 mb-1">🔑 App Password گوگل</label>
+                <input type="password" name="backup_smtp_password" placeholder="••••••••••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
+                <input type="password" name="backup_password" placeholder="••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-xs text-gray-600 mb-1">⏱️ فاصله زمانی (ساعت)</label>
+            <div class="flex gap-2">
+                <input type="number" name="backup_hours" value="{{ backup_hours }}" min="0" max="8760" class="w-32 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <span class="text-xs text-gray-500 self-center">۰ = غیرفعال | ۲۴ = روزانه | ۱۶۸ = هفتگی</span>
+            </div>
+        </div>
+        
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 text-sm">💾 ذخیره تنظیمات بک‌آپ</button>
+        </div>
+    </form>
+    
+    <form method="post" action="/admin/settings/backup/test" class="mt-3">
+        <button type="submit" onclick="return confirm('یک بک‌آپ آزمایشی همین الان ارسال شود؟')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm">🧪 ارسال بک‌آپ آزمایشی الان</button>
+    </form>
+    
+    <details class="mt-4 text-xs text-gray-500">
+        <summary class="cursor-pointer">❓ راهنمای دریافت App Password گوگل</summary>
+        <ol class="list-decimal pr-5 mt-2 space-y-1">
+            <li>به <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-blue-600 underline">myaccount.google.com/apppasswords</a> بروید</li>
+            <li>2FA گوگل را فعال کنید (اگر نیست)</li>
+            <li>App Password جدید بسازید (نام دلخواه: Gift Panel)</li>
+            <li>رمز ۱۶ کاراکتری را کپی کرده و در بالا وارد کنید</li>
+        </ol>
+    </details>
+</div>
 
 </div>
 {% endblock %}
