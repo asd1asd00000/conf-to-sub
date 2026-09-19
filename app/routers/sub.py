@@ -79,10 +79,22 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
 
     # حالت ۴: کاربر فعال - کانفیگ‌های واقعی
     configs = db.query(Config).all()
-    if not configs:
-        return _encode_and_respond(_make_fake_configs(MSG_NO_CONFIG), user)
 
     config_list = []
+
+    # 📢 اطلاع‌رسانی ادمین در بالای لیست
+    if get_setting(db, "broadcast_enabled", "0") == "1":
+        btext = get_setting(db, "broadcast_text", "")
+        idx = 0
+        for line in [l.strip() for l in btext.split("\n") if l.strip()]:
+            config_list.append(_make_fake_config(f"📢 {line}", idx))
+            idx += 1
+
+    if not configs and not config_list:
+        return _encode_and_respond(_make_fake_configs(MSG_NO_CONFIG), user)
+    if not configs:
+        return _encode_and_respond("\n".join(config_list), user)
+
     for config in configs:
         if "#" in config.raw_config:
             base_url = config.raw_config.split("#")[0]
