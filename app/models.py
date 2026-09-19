@@ -4,7 +4,8 @@ from datetime import datetime
 import re
 
 def process_config_remark(original_remark: str, added_time: datetime) -> str:
-    base_name = f"gift-panel-{added_time.strftime('%H:%M')}"
+    # فرمت جدید: gift-panel-2026.09.19-11:33
+    base_name = f"gift-panel-{added_time.strftime('%Y.%m.%d-%H:%M')}"
     flags = re.findall(r'[\U0001F1E6-\U0001F1FF]{2}', original_remark)
     country_codes = re.findall(r'\b(US|UK|DE|FR|NL|SG|JP|KR|CA|AU|RU|TR|IN|BR|HK|TW|IT|ES|SE|CH|FI|NO|DK|PL|CZ|RO|BG|HU|AT|BE|IE|PT|GR)\b', original_remark, re.IGNORECASE)
     suffix_parts = []
@@ -24,7 +25,7 @@ class User(Base):
     expire_date = Column(DateTime)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    last_seen = Column(DateTime, nullable=True)  # آخرین دریافت سابسکریپشن
+    last_seen = Column(DateTime, nullable=True)
 
 class Config(Base):
     __tablename__ = "configs"
