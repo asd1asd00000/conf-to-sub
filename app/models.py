@@ -4,7 +4,6 @@ from datetime import datetime
 import re
 
 def process_config_remark(original_remark: str, added_time: datetime) -> str:
-    # فرمت جدید: gift-panel-2026.09.19-11:33
     base_name = f"gift-panel-{added_time.strftime('%Y.%m.%d-%H:%M')}"
     flags = re.findall(r'[\U0001F1E6-\U0001F1FF]{2}', original_remark)
     country_codes = re.findall(r'\b(US|UK|DE|FR|NL|SG|JP|KR|CA|AU|RU|TR|IN|BR|HK|TW|IT|ES|SE|CH|FI|NO|DK|PL|CZ|RO|BG|HU|AT|BE|IE|PT|GR)\b', original_remark, re.IGNORECASE)
@@ -35,8 +34,27 @@ class Config(Base):
     protocol = Column(String)
     added_time = Column(DateTime, default=datetime.utcnow)
 
+class Setting(Base):
+    """جدول تنظیمات عمومی پنل (کلید/مقدار) - قابل گسترش برای آینده"""
+    __tablename__ = "settings"
+    key = Column(String, primary_key=True, index=True)
+    value = Column(String, default="")
+
 user_config_association = Table(
     "user_configs", Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id")),
     Column("config_id", Integer, ForeignKey("configs.id"))
 )
+
+# ---------- توابع کمکی تنظیمات ----------
+def get_setting(db, key: str, default: str = "") -> str:
+    s = db.query(Setting).filter(Setting.key == key).first()
+    return s.value if s else default
+
+def set_setting(db, key: str, value: str):
+    s = db.query(Setting).filter(Setting.key == key).first()
+    if s:
+        s.value = value
+    else:
+        db.add(Setting(key=key, value=value))
+    db.commit()
