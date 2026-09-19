@@ -13,6 +13,9 @@ _user_cols = [c["name"] for c in _inspector.get_columns("users")]
 if "last_seen" not in _user_cols:
     with engine.begin() as _conn:
         _conn.execute(text("ALTER TABLE users ADD COLUMN last_seen DATETIME"))
+        if "sub_update_count" not in _user_cols:
+    with engine.begin() as _conn:
+        _conn.execute(text("ALTER TABLE users ADD COLUMN sub_update_count INTEGER DEFAULT 0"))
 
 app = FastAPI(title="Gift Panel")
 app.add_middleware(SessionMiddleware, secret_key="gift-panel-secret-key-12345")
