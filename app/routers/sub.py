@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from urllib.parse import quote
 from ..database import get_db
-from ..models import User, Config
+from ..models import User, Config, get_setting
 from datetime import datetime
 import base64
 
