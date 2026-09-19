@@ -47,27 +47,25 @@ def users_page(request: Request, q: str = "", db: Session = Depends(get_db)):
     users = query.order_by(User.id.desc()).all()
     now = datetime.utcnow()
 
-    # محاسبات دقیق زمان (روز + ساعت + دقیقه)
+    # محاسبات سازگار زمان (همه از یک مبنا: ثانیه)
     for u in users:
-        delta = u.expire_date - now
-        total_seconds = delta.total_seconds()
-        
-        if total_seconds < 0:
-            u.days_left = 0
-            u.hours_left = 0
-            u.mins_left = 0
+        remain_sec = (u.expire_date - now).total_seconds()
+        used_sec = max(0.0, (now - u.created_at).total_seconds())
+        total_sec = max(1.0, (u.expire_date - u.created_at).total_seconds())
+
+        if remain_sec < 0:
             u.expired = True
+            u.days_left = u.hours_left = u.mins_left = 0
         else:
-            u.days_left = int(total_seconds // 86400)
-            u.hours_left = int((total_seconds % 86400) // 3600)
-            u.mins_left = int((total_seconds % 3600) // 60)
             u.expired = False
-        
-        total = (u.expire_date - u.created_at).days
-        u.total_days = total if total > 0 else 1
-        used = (now - u.created_at).days
-        u.used_days = max(0, min(used, u.total_days))
-        u.percent = max(0, min(100, (u.used_days * 100) // u.total_days))
+            u.days_left = int(remain_sec // 86400)
+            u.hours_left = int((remain_sec % 86400) // 3600)
+            u.mins_left = int((remain_sec % 3600) // 60)
+
+        u.used_txt = f"{int(used_sec // 86400)} روز و {int((used_sec % 86400) // 3600)} ساعت"
+        u.total_txt = f"{int(total_sec // 86400)} روز و {int((total_sec % 86400) // 3600)} ساعت"
+        u.percent = max(0, min(100, int(used_sec * 100 / total_sec)))
+
         u.seen_txt = time_ago(u.last_seen, now)
         u.seen_recent = bool(u.last_seen and (now - u.last_seen).total_seconds() < 86400)
 
