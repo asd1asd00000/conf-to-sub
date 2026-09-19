@@ -316,3 +316,47 @@ def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_e
     set_setting(db, "broadcast_text", broadcast_text.strip())
     request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
     return RedirectResponse(url="/admin/settings", status_code=303)
+    # ========== بک‌آپ ==========
+
+@router.post("/settings/backup")
+def save_backup_settings(
+    request: Request,
+    backup_enabled: bool = Form(False),
+    backup_hours: int = Form(0),
+    backup_email_to: str = Form(""),
+    backup_email_from: str = Form(""),
+    backup_password: str = Form(""),
+    backup_smtp_password: str = Form(""),
+    db: Session = Depends(get_db),
+):
+    set_setting(db, "backup_enabled", "1" if backup_enabled else "0")
+    set_setting(db, "backup_hours", str(max(0, min(8760, backup_hours))))
+    set_setting(db, "backup_email_to", backup_email_to.strip())
+    set_setting(db, "backup_email_from", backup_email_from.strip())
+    if backup_password:
+        set_setting(db, "backup_password", backup_password)
+    if backup_smtp_password:
+        set_setting(db, "backup_smtp_password", backup_smtp_password.replace(" ", ""))
+
+    # زمان‌بندی
+    if backup_enabled and backup_hours > 0:
+        backup_scheduler.reschedule(backup_hours)
+    else:
+        backup_scheduler.reschedule(0)
+
+    # اولین بک‌آپ فوری هنگام فعال‌سازی
+    last_sent = get_setting(db, "backup_last_sent", "")
+    first_backup_msg = ""
+    if backup_enabled and not last_sent and backup_email_to.strip():
+        ok, msg = backup_service.run_backup_job(db)
+        first_backup_msg = f" | اولین بک‌آپ: {msg}"
+
+    request.session["message"] = f"💾 تنظیمات بک‌آپ ذخیره شد{first_backup_msg}"
+    return RedirectResponse(url="/admin/settings", status_code=303)
+
+
+@router.post("/settings/backup/test")
+def test_backup_now(request: Request, db: Session = Depends(get_db)):
+    ok, msg = backup_service.run_backup_job(db)
+    request.session["message"] = f"🧪 تست بک‌آپ: {msg}"
+    return RedirectResponse(url="/admin/settings", status_code=303)
