@@ -27,6 +27,8 @@ app.add_middleware(SessionMiddleware, secret_key="gift-panel-secret-key-12345")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.include_router(admin.router, prefix="/admin")
 app.include_router(sub.router, prefix="/sub")
+from .routers import api
+app.include_router(api.router)
 
 
 @app.on_event("startup")
