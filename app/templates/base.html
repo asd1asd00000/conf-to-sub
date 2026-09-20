@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gift Panel{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
         @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
@@ -28,15 +27,32 @@
     </nav>
 
     {% if message %}
-    <div id="serverToast" class="fixed top-16 left-1/2 transform -translate-x-1/2 bg-white border-r-4 border-blue-500 shadow-2xl rounded-lg p-4 z-50 toast-enter flex items-center gap-3 min-w-[280px] max-w-[90vw]">
-        <div class="text-2xl">🔔</div>
-        <p class="text-gray-700 text-sm flex-1">{{ message }}</p>
-        <button onclick="hideToast(document.getElementById('serverToast'))" class="text-gray-400 hover:text-gray-600">✕</button>
+    <div class="fixed top-16 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+        <div id="serverToast" class="pointer-events-auto bg-white border-r-4 border-blue-500 shadow-2xl rounded-lg p-4 toast-enter flex items-center gap-3 w-full max-w-md">
+            <div class="text-2xl">🔔</div>
+            <p class="text-gray-700 text-sm flex-1">{{ message }}</p>
+            <button onclick="hideToast(document.getElementById('serverToast'))" class="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
     </div>
     <script>setTimeout(() => hideToast(document.getElementById('serverToast')), 5000);</script>
     {% endif %}
 
-    <div id="jsToast" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-sm px-5 py-3 rounded-full shadow-2xl z-50"></div>
+    <div class="fixed bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+        <div id="jsToast" class="hidden pointer-events-auto bg-gray-900 text-white text-sm px-5 py-3 rounded-full shadow-2xl toast-enter"></div>
+    </div>
+
+    <!-- مودال تأیید اختصاصی پنل -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
+            <div class="text-4xl mb-3">⚠️</div>
+            <h3 class="font-bold text-lg mb-2">مطمئن هستید؟</h3>
+            <p id="confirmMsg" class="text-sm text-gray-600 mb-5"></p>
+            <div class="flex gap-2">
+                <button onclick="confirmYes()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg">بله، انجام بده</button>
+                <button onclick="closeModal('confirmModal')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg">انصراف</button>
+            </div>
+        </div>
+    </div>
 
     <main class="container mx-auto p-4 md:p-8">
         {% block content %}{% endblock %}
@@ -46,6 +62,19 @@
         function hideToast(el){ if(!el) return; el.classList.remove('toast-enter'); el.classList.add('toast-exit'); setTimeout(()=>el.remove(),400); }
         function jsToast(msg){ const t=document.getElementById('jsToast'); t.textContent=msg; t.classList.remove('hidden'); t.classList.add('toast-enter'); clearTimeout(t._h); t._h=setTimeout(()=>{ t.classList.add('toast-exit'); setTimeout(()=>{ t.classList.add('hidden'); t.classList.remove('toast-exit'); },400); },2500); }
         function copyText(txt){ navigator.clipboard.writeText(txt).then(()=>jsToast('📋 کپی شد!')).catch(()=>{ const i=document.createElement('textarea'); i.value=txt; document.body.appendChild(i); i.select(); document.execCommand('copy'); i.remove(); jsToast('📋 کپی شد!'); }); }
+        function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+        let _confirmCb = null;
+        function askConfirm(msg, cb){
+            document.getElementById('confirmMsg').textContent = msg;
+            _confirmCb = cb;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+        function confirmYes(){
+            closeModal('confirmModal');
+            const cb = _confirmCb; _confirmCb = null;
+            if (cb) cb();
+        }
     </script>
     {% block scripts %}{% endblock %}
 </body>
