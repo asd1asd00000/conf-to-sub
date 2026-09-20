@@ -77,7 +77,7 @@
 
         <a href="/admin/settings/backup/download" class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg text-sm mb-4">💾 دانلود بک‌آپ محلی (زیپ رمزدار)</a>
 
-        <form method="post" action="/admin/settings/backup/restore" enctype="multipart/form-data" onsubmit="return confirm('از این فایل بک‌آپ بازیابی شود؟ داده‌های فعلی به‌روزرسانی می‌شوند.')">
+        <form method="post" action="/admin/settings/backup/restore" enctype="multipart/form-data" id="restoreForm">
             <label class="block text-xs text-gray-600 mb-1">📦 فایل بک‌آپ (zip)</label>
             <input type="file" name="file" accept=".zip" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 text-sm">
             <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
