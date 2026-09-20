@@ -280,6 +280,7 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
     backup_email_to = get_setting(db, "backup_email_to", "")
     backup_email_from = get_setting(db, "backup_email_from", "")
     backup_last_sent = get_setting(db, "backup_last_sent", "")
+    api_key = get_api_key(db)
     
     return templates.TemplateResponse("settings.html", {
         "request": request,
