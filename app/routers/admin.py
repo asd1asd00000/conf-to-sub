@@ -144,17 +144,20 @@ def user_qr(user_id: int, request: Request, db: Session = Depends(get_db)):
     return Response(content=buf.getvalue(), media_type="image/svg+xml")
 
 @router.post("/users/{user_id}/edit")
-def edit_user(request: Request, user_id: int, username: str = Form(...), days: int = Form(...), is_active: bool = Form(False), reset_count: bool = Form(False), db: Session = Depends(get_db)):
+def edit_user(request: Request, user_id: int, username: str = Form(...), change_expire: bool = Form(False), exp_days: int = Form(0), exp_hours: int = Form(0), exp_mins: int = Form(0), is_active: bool = Form(False), reset_count: bool = Form(False), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user.username = username
-    user.expire_date = datetime.utcnow() + timedelta(days=days)
+    if change_expire:
+        user.expire_date = datetime.utcnow() + timedelta(days=exp_days, hours=exp_hours, minutes=exp_mins)
     user.is_active = is_active
     if reset_count:
         user.sub_update_count = 0
     db.commit()
     msg = f"✏️ کاربر {username} به‌روزرسانی شد."
+    if change_expire:
+        msg += f" (انقضای جدید: {exp_days} روز و {exp_hours} ساعت و {exp_mins} دقیقه)"
     if reset_count:
         msg += " (شمارنده آپدیت صفر شد 🔄)"
     request.session["message"] = msg
