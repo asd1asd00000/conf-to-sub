@@ -65,9 +65,9 @@
             </div>
             <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 text-sm">💾 ذخیره تنظیمات بک‌آپ</button>
         </form>
-        <form method="post" action="/admin/settings/backup/test" class="mt-3">
-            <button type="submit" onclick="return confirm('یک بک‌آپ آزمایشی همین الان ارسال شود؟')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm">🧪 ارسال بک‌آپ آزمایشی الان</button>
-        </form>
+    <form method="post" action="/admin/settings/backup/test" id="testBackupForm" class="mt-3">
+        <button type="button" onclick="askConfirm('یک بک‌آپ آزمایشی همین الان به جیمیل ارسال شود؟', function(){ document.getElementById('testBackupForm').submit(); })" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm">🧪 ارسال بک‌آپ آزمایشی الان</button>
+    </form>
     </div>
 
     <!-- بک‌آپ محلی و ریستور -->
