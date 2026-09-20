@@ -253,13 +253,6 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
     message = request.session.pop("message", None)
     broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
     broadcast_text = get_setting(db, "broadcast_text", "")
-    
-    try:
-        reminder_hours = int(get_setting(db, "reminder_hours", "24") or "0")
-    except ValueError:
-        reminder_hours = 0
-    reminder_text = get_setting(db, "reminder_text", "۲۴ ساعت از آخرین آپدیت شما گذشته\nلطفاً لینک اشتراک را آپدیت کنید تا سرورها لود شوند")
-    
     backup_enabled = get_setting(db, "backup_enabled", "0") == "1"
     try:
         backup_hours = int(get_setting(db, "backup_hours", "0") or "0")
