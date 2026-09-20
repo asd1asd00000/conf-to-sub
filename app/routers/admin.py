@@ -293,6 +293,7 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
         "backup_email_to": backup_email_to,
         "backup_email_from": backup_email_from,
         "backup_last_sent": backup_last_sent,
+        "api_key": api_key,
     })
 
 @router.post("/settings/broadcast")
