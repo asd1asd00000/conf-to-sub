@@ -10,7 +10,6 @@ from .services import scheduler as backup_scheduler
 
 Base.metadata.create_all(bind=engine)
 
-# مهاجریت خودکار ستون‌های جدید
 _inspector = inspect(engine)
 _user_cols = [c["name"] for c in _inspector.get_columns("users")]
 
@@ -32,7 +31,6 @@ app.include_router(sub.router, prefix="/sub")
 
 @app.on_event("startup")
 def on_startup():
-    """بارگذاری تنظیمات بک‌آپ و شروع زمان‌بند در هنگام استارت."""
     try:
         db = SessionLocal()
         try:
@@ -40,11 +38,13 @@ def on_startup():
             enabled = s and s.value == "1"
             h = db.query(Setting).filter(Setting.key == "backup_hours").first()
             hours = int(h.value) if h and h.value.isdigit() else 0
+            l = db.query(Setting).filter(Setting.key == "backup_last_sent").first()
+            last_sent = l.value if l else ""
+            backup_scheduler.ensure_started()
             if enabled and hours > 0:
                 backup_scheduler.reschedule(hours)
-                print(f"[STARTUP] زمان‌بند بک‌آپ با فاصله {hours} ساعت فعال شد", flush=True)
+                backup_scheduler.catchup_if_overdue(hours, last_sent)
             else:
-                backup_scheduler.ensure_started()
                 print("[STARTUP] زمان‌بند بک‌آپ شروع شد (غیرفعال)", flush=True)
         finally:
             db.close()
