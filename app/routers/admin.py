@@ -435,3 +435,18 @@ async def restore_backup(request: Request, file: UploadFile = File(...), restore
 
     request.session["message"] = f"✅ ریستور کامل شد: {restored} کاربر و {len(settings_data)} تنظیم بازیابی شد."
     return RedirectResponse(url="/admin/settings", status_code=303)
+
+# ========== API Key Management ==========
+
+@router.post("/settings/api-key/generate")
+def generate_api_key_route(request: Request, db: Session = Depends(get_db)):
+    new_key = generate_api_key(db)
+    request.session["message"] = f"🔑 API Key جدید ساخته شد: {new_key[:8]}... (کامل در صفحه تنظیمات ببینید)"
+    return RedirectResponse(url="/admin/settings", status_code=303)
+
+
+@router.post("/settings/api-key/regenerate")
+def regenerate_api_key_route(request: Request, db: Session = Depends(get_db)):
+    new_key = generate_api_key(db)
+    request.session["message"] = f"🔄 API Key بازسازی شد. کلید قبلی دیگر کار نمی‌کند."
+    return RedirectResponse(url="/admin/settings", status_code=303)
