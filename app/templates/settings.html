@@ -100,7 +100,7 @@
             <label class="block text-xs text-gray-500 mb-1">API Key فعلی:</label>
             <div class="flex gap-2 items-center">
                 <input id="apiKeyInput" type="password" value="{{ api_key }}" readonly class="flex-1 p-2 bg-white border border-gray-300 rounded text-xs dir-ltr text-left font-mono">
-                <button onclick="toggleApiKey()" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-xs">👁️</button>
+                <button type="button" onclick="var i=document.getElementById('apiKeyInput'); i.type = (i.type==='password') ? 'text' : 'password';" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-xs">👁️</button>
                 <button onclick="copyText(document.getElementById('apiKeyInput').value)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-xs">📋</button>
             </div>
         </div>
