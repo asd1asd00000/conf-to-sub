@@ -79,7 +79,7 @@ def users_page(request: Request, q: str = "", page: int = Query(1), per_page: in
             u.hours_left = int((remain_sec % 86400) // 3600)
             u.mins_left = int((remain_sec % 3600) // 60)
 
-        u.edit_days = max(0, math.ceil(remain_sec / 86400))
+        u.expire_str = u.expire_date.strftime("%Y-%m-%d %H:%M") if u.expire_date else "-"
         u.used_txt = f"{int(used_sec // 86400)} روز و {int((used_sec % 86400) // 3600)} ساعت"
         u.total_txt = f"{int(total_sec // 86400)} روز و {int((total_sec % 86400) // 3600)} ساعت"
         u.percent = max(0, min(100, int(used_sec * 100 / total_sec)))
