@@ -142,11 +142,12 @@
     }
 
     function deleteConfig(id, name){
-        if(confirm('کانفیگ "' + name + '" حذف شود؟')){
+        askConfirm('کانفیگ "' + name + '" حذف شود؟', function(){
             const f = document.getElementById('deleteConfigForm');
             f.action = '/admin/configs/' + id + '/delete';
             f.submit();
-        }
+        });
+    }
     }
     function updateBulkConfigs(){
         const boxes = document.querySelectorAll('.configCheck:checked');
