@@ -38,11 +38,8 @@ def create_backup_zip(db, password: str) -> bytes:
         })
 
     settings_data = {}
-    # از بک‌آپ گرفتن از رمزها صرف‌نظر می‌کنیم (امنیت)
-    skip_keys = {"backup_smtp_password"}
     for s in db.query(Setting).all():
-        if s.key not in skip_keys:
-            settings_data[s.key] = s.value
+        settings_data[s.key] = s.value
 
     backup_payload = {
         "version": 1,
