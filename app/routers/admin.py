@@ -338,3 +338,96 @@ def test_backup_now(request: Request, db: Session = Depends(get_db)):
     ok, msg = backup_service.run_backup_job(db)
     request.session["message"] = f"🧪 تست بک‌آپ: {msg}"
     return RedirectResponse(url="/admin/settings", status_code=303)
+
+# ========== بک‌آپ محلی و ریستور ==========
+
+def _parse_iso(s):
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s)
+    except ValueError:
+        return None
+
+
+@router.get("/settings/backup/download")
+def download_backup(request: Request, db: Session = Depends(get_db)):
+    password = get_setting(db, "backup_password", "gift123").strip() or "gift123"
+    zip_bytes = backup_service.create_backup_zip(db, password)
+    filename = f"gift-panel-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.zip"
+    return Response(
+        content=zip_bytes,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.post("/settings/backup/restore")
+async def restore_backup(request: Request, file: UploadFile = File(...), restore_password: str = Form(""), replace_users: bool = Form(False), db: Session = Depends(get_db)):
+    import pyzipper
+    import json as _json
+    try:
+        data = await file.read()
+        zf = pyzipper.AESZipFile(io.BytesIO(data))
+        if restore_password:
+            zf.setpassword(restore_password.encode("utf-8"))
+        if "backup.json" not in zf.namelist():
+            request.session["message"] = "❌ فایل بک‌آپ معتبر نیست (backup.json پیدا نشد)."
+            return RedirectResponse(url="/admin/settings", status_code=303)
+        payload = _json.loads(zf.read("backup.json").decode("utf-8"))
+    except RuntimeError:
+        request.session["message"] = "❌ پسورد اشتباه است (فایل رمزگشایی نشد)."
+        return RedirectResponse(url="/admin/settings", status_code=303)
+    except Exception as e:
+        request.session["message"] = f"❌ خطا در خواندن فایل بک‌آپ: {type(e).__name__}"
+        return RedirectResponse(url="/admin/settings", status_code=303)
+
+    users_data = payload.get("users", [])
+    settings_data = payload.get("settings", {})
+
+    if replace_users:
+        db.query(User).delete()
+        db.flush()
+
+    restored = 0
+    for ud in users_data:
+        sub_uuid = ud.get("sub_uuid")
+        u = db.query(User).filter(User.sub_uuid == sub_uuid).first() if sub_uuid else None
+        if not u:
+            u = db.query(User).filter(User.username == ud.get("username")).first()
+        if u:
+            u.username = ud.get("username", u.username)
+            if sub_uuid:
+                u.sub_uuid = sub_uuid
+            u.expire_date = _parse_iso(ud.get("expire_date")) or u.expire_date
+            u.is_active = bool(ud.get("is_active", True))
+            u.created_at = _parse_iso(ud.get("created_at")) or u.created_at
+            u.last_seen = _parse_iso(ud.get("last_seen"))
+            u.sub_update_count = ud.get("sub_update_count", 0) or 0
+        else:
+            u = User(
+                username=ud.get("username"),
+                sub_uuid=sub_uuid or str(uuid.uuid4()),
+                expire_date=_parse_iso(ud.get("expire_date")) or (datetime.utcnow() + timedelta(days=30)),
+                is_active=bool(ud.get("is_active", True)),
+                created_at=_parse_iso(ud.get("created_at")) or datetime.utcnow(),
+                last_seen=_parse_iso(ud.get("last_seen")),
+                sub_update_count=ud.get("sub_update_count", 0) or 0,
+            )
+            db.add(u)
+        restored += 1
+
+    for k, v in settings_data.items():
+        set_setting(db, k, str(v))
+    db.commit()
+
+    # اعمال مجدد زمان‌بندی با تنظیمات بازیابی‌شده
+    try:
+        hours = int(get_setting(db, "backup_hours", "0") or "0")
+    except ValueError:
+        hours = 0
+    if get_setting(db, "backup_enabled", "0") == "1" and hours > 0:
+        backup_scheduler.reschedule(hours)
+
+    request.session["message"] = f"✅ ریستور کامل شد: {restored} کاربر و {len(settings_data)} تنظیم بازیابی شد."
+    return RedirectResponse(url="/admin/settings", status_code=303)
