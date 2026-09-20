@@ -267,8 +267,6 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
         "message": message,
         "active_page": "settings",
         "broadcast_enabled": broadcast_enabled,
-        "broadcast_text": broadcast_text,
-        "reminder_hours": reminder_hours,
         "reminder_text": reminder_text,
         "backup_enabled": backup_enabled,
         "backup_hours": backup_hours,
