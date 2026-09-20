@@ -31,6 +31,31 @@ class UserCreate(BaseModel):
             raise ValueError("Username can only contain letters, numbers, _, -, .")
         return v
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=2, max_length=64)
+    is_active: Optional[bool] = None
+    change_expire: bool = False
+    days: int = Field(0, ge=0, le=3650)
+    hours: int = Field(0, ge=0, le=23)
+    minutes: int = Field(0, ge=0, le=59)
+    reset_update_count: bool = False
+
+    @field_validator("username")
+    @classmethod
+    def clean_username(cls, v):
+        if v is None:
+            return v
+        v = v.strip()
+        if not v.replace("_", "").replace("-", "").replace(".", "").isalnum():
+            raise ValueError("Username can only contain letters, numbers, _, -, .")
+        return v
+
+
+class RenewRequest(BaseModel):
+    days: int = Field(0, ge=0, le=3650)
+    hours: int = Field(0, ge=0, le=23)
+    minutes: int = Field(0, ge=0, le=59)
+
 class UserResponse(BaseModel):
     id: int
     username: str
