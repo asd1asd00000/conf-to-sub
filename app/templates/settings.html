@@ -15,29 +15,100 @@
                 اطلاع‌رسانی فعال باشد
             </label>
             <textarea name="broadcast_text" rows="4" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" placeholder="خط اول: امشب ساعت ۱۲ سرورها به‌روزرسانی می‌شوند&#10;خط دوم: لطفاً ساب را دوباره آپدیت کنید">{{ broadcast_text }}</textarea>
-            <p class="text-xs text-gray-400 mb-3">💡 هر خط = یک ردیف در کلاینت کاربر. خطوط کوتاه‌تر از ۳۵ کاراکتر بهتر نمایش داده می‌شوند.</p>
+            <p class="text-xs text-gray-400 mb-3">💡 هر خط = یک ردیف در کلاینت کاربر.</p>
             <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">ذخیره اطلاع‌رسانی</button>
         </form>
     </div>
-    <!-- یادآوری آپدیت ساب -->
-<div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500">
-    <h2 class="text-xl font-semibold mb-2 text-orange-600">🔔 یادآوری آپدیت سابسکریپشن</h2>
-    <p class="text-xs text-gray-500 mb-4">اگر کاربر در بازه زمانی تعیین‌شده سابسکریپشن خود را آپدیت نکند، این پیام را در لیست کانفیگ‌هایش می‌بیند. عدد ۰ = غیرفعال (بی‌نهایت).</p>
-    <form method="post" action="/admin/settings/reminder">
-        <div class="mb-3">
-            <label class="block text-sm text-gray-700 mb-1">⏱️ حداکثر زمان بین آپدیت‌ها (ساعت)</label>
-            <div class="flex items-center gap-2">
-                <input type="number" name="reminder_hours" value="{{ reminder_hours }}" min="0" max="8760" required class="w-32 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                <span class="text-xs text-gray-500">۰ = غیرفعال | ۲۴ = یک روز | ۱۶۸ = یک هفته</span>
-            </div>
-        </div>
-        <label class="block text-sm text-gray-700 mb-1">💬 متن پیام (هر خط = یک ردیف در کلاینت)</label>
-        <textarea name="reminder_text" rows="3" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm" placeholder="۲۴ ساعت از آخرین آپدیت شما گذشته&#10;لطفاً لینک اشتراک را آپدیت کنید">{{ reminder_text }}</textarea>
-        <button class="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700">ذخیره یادآوری</button>
-    </form>
-</div>
 
-    <!-- پیش‌نمایش -->
+    <!-- یادآوری آپدیت -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500">
+        <h2 class="text-xl font-semibold mb-2 text-orange-600">🔔 یادآوری آپدیت سابسکریپشن</h2>
+        <p class="text-xs text-gray-500 mb-4">اگر کاربر در بازه تعیین‌شده ساب را آپدیت نکند، این پیام را می‌بیند. ۰ = غیرفعال.</p>
+        <form method="post" action="/admin/settings/reminder">
+            <div class="mb-3">
+                <label class="block text-sm text-gray-700 mb-1">⏱️ حداکثر زمان بین آپدیت‌ها (ساعت)</label>
+                <div class="flex items-center gap-2">
+                    <input type="number" name="reminder_hours" value="{{ reminder_hours }}" min="0" max="8760" required class="w-32 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <span class="text-xs text-gray-500">۰ = غیرفعال | ۲۴ = روزانه</span>
+                </div>
+            </div>
+            <label class="block text-sm text-gray-700 mb-1">💬 متن پیام (هر خط = یک ردیف)</label>
+            <textarea name="reminder_text" rows="3" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm">{{ reminder_text }}</textarea>
+            <button class="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700">ذخیره یادآوری</button>
+        </form>
+    </div>
+
+    <!-- بک‌آپ خودکار به جیمیل -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-emerald-500">
+        <h2 class="text-xl font-semibold mb-2 text-emerald-600">💾 بک‌آپ خودکار به جیمیل</h2>
+        <p class="text-xs text-gray-500 mb-4">زیپ رمزدار AES-256 شامل کاربران و تنظیمات (بدون کانفیگ‌ها).</p>
+        {% if backup_last_sent %}
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-xs">
+            <b>⏰ آخرین بک‌آپ:</b> {{ backup_last_sent }}
+        </div>
+        {% endif %}
+        <form method="post" action="/admin/settings/backup">
+            <label class="flex items-center gap-2 text-sm text-gray-700 mb-3">
+                <input type="checkbox" name="backup_enabled" {{ 'checked' if backup_enabled }} class="w-4 h-4">
+                بک‌آپ خودکار فعال باشد
+            </label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">📧 جیمیل مقصد</label>
+                    <input type="email" name="backup_email_to" value="{{ backup_email_to }}" placeholder="you@gmail.com" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">📤 جیمیل فرستنده (اختیاری)</label>
+                    <input type="email" name="backup_email_from" value="{{ backup_email_from }}" placeholder="خالی = همان مقصد" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">🔑 App Password گوگل</label>
+                    <input type="password" name="backup_smtp_password" placeholder="••••••••••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                    <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
+                    <input type="password" name="backup_password" placeholder="••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                    <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="block text-xs text-gray-600 mb-1">⏱️ فاصله زمانی (ساعت)</label>
+                <div class="flex gap-2">
+                    <input type="number" name="backup_hours" value="{{ backup_hours }}" min="0" max="8760" class="w-32 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    <span class="text-xs text-gray-500 self-center">۰ = غیرفعال | ۲۴ = روزانه</span>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 text-sm">💾 ذخیره تنظیمات بک‌آپ</button>
+        </form>
+        <form method="post" action="/admin/settings/backup/test" class="mt-3">
+            <button type="submit" onclick="return confirm('یک بک‌آپ آزمایشی همین الان ارسال شود؟')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm">🧪 ارسال بک‌آپ آزمایشی الان</button>
+        </form>
+    </div>
+
+    <!-- بک‌آپ محلی و ریستور -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-teal-500">
+        <h2 class="text-xl font-semibold mb-2 text-teal-600">📥 بک‌آپ محلی و ریستور</h2>
+        <p class="text-xs text-gray-500 mb-4">فایل بک‌آپ رمزدار را مستقیم دانلود کنید یا از یک بک‌آپ قبلی بازیابی کنید.</p>
+
+        <a href="/admin/settings/backup/download" class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg text-sm mb-4">💾 دانلود بک‌آپ محلی (زیپ رمزدار)</a>
+
+        <form method="post" action="/admin/settings/backup/restore" enctype="multipart/form-data" onsubmit="return confirm('از این فایل بک‌آپ بازیابی شود؟ داده‌های فعلی به‌روزرسانی می‌شوند.')">
+            <label class="block text-xs text-gray-600 mb-1">📦 فایل بک‌آپ (zip)</label>
+            <input type="file" name="file" accept=".zip" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 text-sm">
+            <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
+            <input type="password" name="restore_password" placeholder="پسوردی که هنگام ساخت بک‌آپ gesetzt کردید" class="w-full p-2 border border-gray-300 rounded-lg mb-3 text-sm dir-ltr text-left">
+            <label class="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                <input type="checkbox" name="replace_users" class="w-4 h-4">
+                کاربران فعلی قبل از ریستور حذف شوند (جایگزینی کامل)
+            </label>
+            <button class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg text-sm">♻️ بازیابی از بک‌آپ</button>
+        </form>
+    </div>
+
+    <!-- پیش‌نمایش اطلاع‌رسانی -->
     <div class="bg-white p-6 rounded-xl shadow-sm">
         <h2 class="text-xl font-semibold mb-4">👀 پیش‌نمایش در کلاینت کاربر</h2>
         <div class="space-y-2">
@@ -51,84 +122,14 @@
                 <div class="text-center text-gray-400 text-sm py-6">اطلاع‌رسانی غیرفعال است.</div>
             {% endif %}
             <div class="bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-500 truncate dir-ltr text-left">✅ gift-panel-2026.09.19-11:33 🇩🇪 DE</div>
-            <div class="bg-gray-50 border border-gray-200 rounded p-2 text-xs text-gray-500 truncate dir-ltr text-left">✅ gift-panel-2026.09.19-11:35 🇺🇸 US</div>
         </div>
-        <p class="text-xs text-gray-400 mt-3">↑ پیام‌های شما بالای کانفیگ‌های واقعی قرار می‌گیرند.</p>
     </div>
 
-    <!-- بخش‌های آینده (غیرفعال) -->
+    <!-- به‌زودی -->
     <div class="bg-gray-50 p-6 rounded-xl shadow-sm opacity-60">
-        <h2 class="text-lg font-semibold mb-2 text-gray-500">🔐 تغییر نام کاربری و رمز عبور</h2>
-        <p class="text-xs text-gray-400">به‌زودی... (مرحله بعد: سیستم لاگین)</p>
+        <h2 class="text-lg font-semibold mb-2 text-gray-500">🔐 تغییر نام کاربری و رمز عبور پنل</h2>
+        <p class="text-xs text-gray-400">به‌زودی... (سیستم لاگین)</p>
     </div>
-<!-- بک‌آپ خودکار -->
-<div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-emerald-500">
-    <h2 class="text-xl font-semibold mb-2 text-emerald-600">💾 بک‌آپ خودکار به جیمیل</h2>
-    <p class="text-xs text-gray-500 mb-4">فایل زیپ رمزدار (AES-256) شامل کاربران و تنظیمات. کانفیگ‌ها بک‌آپ نمی‌شوند.</p>
-    
-    {% if backup_last_sent %}
-    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-xs">
-        <b>⏰ آخرین بک‌آپ:</b> {{ backup_last_sent }}
-    </div>
-    {% endif %}
-    
-    <form method="post" action="/admin/settings/backup">
-        <label class="flex items-center gap-2 text-sm text-gray-700 mb-3">
-            <input type="checkbox" name="backup_enabled" {{ 'checked' if backup_enabled }} class="w-4 h-4">
-            بک‌آپ خودکار فعال باشد
-        </label>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">📧 جیمیل مقصد (دریافت‌کننده)</label>
-                <input type="email" name="backup_email_to" value="{{ backup_email_to }}" placeholder="you@gmail.com" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-            </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">📤 جیمیل فرستنده (اختیاری)</label>
-                <input type="email" name="backup_email_from" value="{{ backup_email_from }}" placeholder="همان مقصد اگر خالی باشد" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">🔑 App Password گوگل</label>
-                <input type="password" name="backup_smtp_password" placeholder="••••••••••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
-                <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
-            </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
-                <input type="password" name="backup_password" placeholder="••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
-                <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
-            </div>
-        </div>
-        
-        <div class="mb-4">
-            <label class="block text-xs text-gray-600 mb-1">⏱️ فاصله زمانی (ساعت)</label>
-            <div class="flex gap-2">
-                <input type="number" name="backup_hours" value="{{ backup_hours }}" min="0" max="8760" class="w-32 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                <span class="text-xs text-gray-500 self-center">۰ = غیرفعال | ۲۴ = روزانه | ۱۶۸ = هفتگی</span>
-            </div>
-        </div>
-        
-        <div class="flex gap-2">
-            <button type="submit" class="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 text-sm">💾 ذخیره تنظیمات بک‌آپ</button>
-        </div>
-    </form>
-    
-    <form method="post" action="/admin/settings/backup/test" class="mt-3">
-        <button type="submit" onclick="return confirm('یک بک‌آپ آزمایشی همین الان ارسال شود؟')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg text-sm">🧪 ارسال بک‌آپ آزمایشی الان</button>
-    </form>
-    
-    <details class="mt-4 text-xs text-gray-500">
-        <summary class="cursor-pointer">❓ راهنمای دریافت App Password گوگل</summary>
-        <ol class="list-decimal pr-5 mt-2 space-y-1">
-            <li>به <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-blue-600 underline">myaccount.google.com/apppasswords</a> بروید</li>
-            <li>2FA گوگل را فعال کنید (اگر نیست)</li>
-            <li>App Password جدید بسازید (نام دلخواه: Gift Panel)</li>
-            <li>رمز ۱۶ کاراکتری را کپی کرده و در بالا وارد کنید</li>
-        </ol>
-    </details>
-</div>
 
 </div>
 {% endblock %}
