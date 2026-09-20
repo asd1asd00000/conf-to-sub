@@ -282,14 +282,6 @@ def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_e
     request.session["message"] = "⚙️ تنظیمات اطلاع‌رسانی ذخیره شد."
     return RedirectResponse(url="/admin/settings", status_code=303)
 
-@router.post("/settings/reminder")
-def save_reminder(request: Request, reminder_hours: int = Form(0), reminder_text: str = Form(""), db: Session = Depends(get_db)):
-    hours = max(0, min(8760, reminder_hours))
-    set_setting(db, "reminder_hours", str(hours))
-    set_setting(db, "reminder_text", reminder_text.strip())
-    request.session["message"] = f"⚙️ تنظیمات یادآوری ذخیره شد ({hours} ساعت)."
-    return RedirectResponse(url="/admin/settings", status_code=303)
-
 @router.post("/settings/backup")
 def save_backup_settings(
     request: Request,
