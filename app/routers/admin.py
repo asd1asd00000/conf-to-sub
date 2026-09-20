@@ -50,22 +50,16 @@ def dashboard(request: Request, page: int = 1, per_page: int = 20, db: Session =
     })
 
 @router.get("/users")
-def users_page(request: Request, q: str = "", page: int = Query(1), per_page: int = Query(20), db: Session = Depends(get_db)):
+def users_page(request: Request, q: str = "", page: int = Query(1), per_page: int = Query(20), sort: str = "", order: str = "desc", db: Session = Depends(get_db)):
     if per_page not in (10, 20, 50, 100):
         per_page = 20
     query = db.query(User)
     if q:
         query = query.filter(User.username.contains(q))
-    total_count = query.count()
-    total_pages = max(1, math.ceil(total_count / per_page))
-    if page < 1:
-        page = 1
-    if page > total_pages:
-        page = total_pages
-    users = query.order_by(User.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+    users_all = query.all()
     now = datetime.utcnow()
 
-    for u in users:
+    for u in users_all:
         remain_sec = (u.expire_date - now).total_seconds()
         used_sec = max(0.0, (now - u.created_at).total_seconds())
         total_sec = max(1.0, (u.expire_date - u.created_at).total_seconds())
@@ -86,6 +80,25 @@ def users_page(request: Request, q: str = "", page: int = Query(1), per_page: in
         u.seen_txt = time_ago(u.last_seen, now)
         u.seen_recent = bool(u.last_seen and (now - u.last_seen).total_seconds() < 86400)
 
+    # مرتب‌سازی
+    sort_keys = {
+        "expire": lambda u: u.expire_date or datetime.min,
+        "percent": lambda u: u.percent,
+        "updates": lambda u: u.sub_update_count or 0,
+    }
+    if sort in sort_keys:
+        users_all.sort(key=sort_keys[sort], reverse=(order != "asc"))
+    else:
+        users_all.sort(key=lambda u: u.id, reverse=True)
+
+    total_count = len(users_all)
+    total_pages = max(1, math.ceil(total_count / per_page))
+    if page < 1:
+        page = 1
+    if page > total_pages:
+        page = total_pages
+    users = users_all[(page - 1) * per_page : page * per_page]
+
     active_count = db.query(User).filter(User.is_active == True, User.expire_date > now).count()
     expired_count = db.query(User).filter(User.expire_date < now).count()
     message = request.session.pop("message", None)
@@ -95,7 +108,8 @@ def users_page(request: Request, q: str = "", page: int = Query(1), per_page: in
         "total_count": total_count, "active_count": active_count,
         "expired_count": expired_count, "message": message,
         "active_page": "users", "base_url": base_url,
-        "page": page, "per_page": per_page, "total_pages": total_pages
+        "page": page, "per_page": per_page, "total_pages": total_pages,
+        "sort": sort, "order": order
     })
 
 @router.post("/users/create")
