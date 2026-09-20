@@ -126,12 +126,47 @@
         {% endif %}
 
         <details class="mt-4 text-xs text-gray-500">
-            <summary class="cursor-pointer">📚 مستندات API</summary>
-            <div class="mt-2 space-y-1 dir-ltr text-left">
-                <div><code>GET  /api/health</code> — بدون نیاز به Key</div>
-                <div><code>GET  /api/users?q=...&page=1&per_page=20</code></div>
-                <div><code>POST /api/users</code> — body: <code>{"username":"x","days":30}</code></div>
-                <div class="pt-2 text-[11px]">Header: <code>Authorization: Bearer YOUR_KEY</code></div>
+            <summary class="cursor-pointer">📚 مستندات کامل API</summary>
+            <div class="mt-3 space-y-3 dir-ltr text-left text-[11px]">
+                <div class="bg-gray-50 p-2 rounded">
+                    <div class="font-bold text-gray-700 mb-1">🌐 عمومی</div>
+                    <div><code>GET /api/health</code> — بدون Key</div>
+                </div>
+
+                <div class="bg-gray-50 p-2 rounded">
+                    <div class="font-bold text-gray-700 mb-1">👥 کاربران</div>
+                    <div><code>GET    /api/users?q=&page=1&per_page=20</code></div>
+                    <div><code>GET    /api/users/{id}</code></div>
+                    <div><code>POST   /api/users</code> — body: <code>{"username":"x","days":30}</code></div>
+                    <div><code>PATCH  /api/users/{id}</code> — ویرایش (پایین)</div>
+                    <div><code>DELETE /api/users/{id}</code> — حذف</div>
+                    <div><code>POST   /api/users/{id}/renew</code> — تمدید (پایین)</div>
+                </div>
+
+                <div class="bg-gray-50 p-2 rounded">
+                    <div class="font-bold text-gray-700 mb-1">✏️ PATCH body (همه فیلدها اختیاری)</div>
+                    <pre class="bg-gray-900 text-green-300 p-2 rounded overflow-x-auto">{
+  "username": "new_name",
+  "is_active": false,
+  "change_expire": true,
+  "days": 7, "hours": 0, "minutes": 0,
+  "reset_update_count": true
+}</pre>
+                </div>
+
+                <div class="bg-gray-50 p-2 rounded">
+                    <div class="font-bold text-gray-700 mb-1">🔄 POST .../renew body</div>
+                    <pre class="bg-gray-900 text-green-300 p-2 rounded overflow-x-auto">{
+  "days": 30, "hours": 0, "minutes": 0
+}</pre>
+                    <div class="text-[10px] text-gray-500 mt-1">💡 به انقضای فعلی اضافه می‌کند (نه از الان)</div>
+                </div>
+
+                <div class="bg-purple-50 p-2 rounded border border-purple-200">
+                    <div class="font-bold text-purple-700 mb-1">🔐 همه درخواست‌ها به جز /health:</div>
+                    <div><code>Authorization: Bearer YOUR_KEY</code></div>
+                    <div><code>Content-Type: application/json</code></div>
+                </div>
             </div>
         </details>
     </div>
