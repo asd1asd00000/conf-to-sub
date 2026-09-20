@@ -90,6 +90,52 @@
         </form>
     </div>
 
+        <!-- API Key -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-purple-500">
+        <h2 class="text-xl font-semibold mb-2 text-purple-600">🔑 API Key (برای اپ‌های خارجی)</h2>
+        <p class="text-xs text-gray-500 mb-4">اپ‌های خارجی با این کلید می‌توانند از طریق <code class="bg-gray-100 px-1 rounded dir-ltr">/api/*</code> به پنل متصل شوند.</p>
+
+        {% if api_key %}
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+            <label class="block text-xs text-gray-500 mb-1">API Key فعلی:</label>
+            <div class="flex gap-2 items-center">
+                <input id="apiKeyInput" type="password" value="{{ api_key }}" readonly class="flex-1 p-2 bg-white border border-gray-300 rounded text-xs dir-ltr text-left font-mono">
+                <button onclick="toggleApiKey()" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-xs">👁️</button>
+                <button onclick="copyText(document.getElementById('apiKeyInput').value)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-xs">📋</button>
+            </div>
+        </div>
+
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4 text-xs">
+            <b>نمونه استفاده:</b>
+            <pre class="bg-gray-900 text-green-300 p-2 rounded mt-2 dir-ltr text-left text-[11px] overflow-x-auto">curl -X POST {{ base_url }}/api/users \
+  -H "Authorization: Bearer {{ api_key[:8] }}..." \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","days":30}'</pre>
+        </div>
+
+        <form method="post" action="/admin/settings/api-key/regenerate" onsubmit="return confirm('API Key بازسازی شود؟ اپ‌های خارجی باید کلید جدید را استفاده کنند.')">
+            <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg text-sm">🔄 بازسازی API Key (کلید قبلی بی‌اعتبار می‌شود)</button>
+        </form>
+        {% else %}
+        <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-3 mb-4 text-xs">
+            ⚠️ هنوز API Key ساخته نشده. برای فعال‌سازی API، دکمه زیر را بزنید.
+        </div>
+        <form method="post" action="/admin/settings/api-key/generate">
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm">🔑 تولید API Key</button>
+        </form>
+        {% endif %}
+
+        <details class="mt-4 text-xs text-gray-500">
+            <summary class="cursor-pointer">📚 مستندات API</summary>
+            <div class="mt-2 space-y-1 dir-ltr text-left">
+                <div><code>GET  /api/health</code> — بدون نیاز به Key</div>
+                <div><code>GET  /api/users?q=...&page=1&per_page=20</code></div>
+                <div><code>POST /api/users</code> — body: <code>{"username":"x","days":30}</code></div>
+                <div class="pt-2 text-[11px]">Header: <code>Authorization: Bearer YOUR_KEY</code></div>
+            </div>
+        </details>
+    </div>
+
     <!-- پیش‌نمایش اطلاع‌رسانی -->
     <div class="bg-white p-6 rounded-xl shadow-sm">
         <h2 class="text-xl font-semibold mb-4">👀 پیش‌نمایش در کلاینت کاربر</h2>
