@@ -168,12 +168,14 @@
     function bulkActionConfigs(action){
         const ids = [...document.querySelectorAll('.configCheck:checked')].map(b => b.value).join(',');
         if(!ids) return;
-        if(action === 'delete' && !confirm('کانفیگ‌های انتخاب‌شده حذف شوند؟')) return;
-        const f = document.getElementById('bulkConfigForm');
-        f.action = '/admin/configs/bulk';
-        f.querySelector('[name=action]').value = action;
-        f.querySelector('[name=ids]').value = ids;
-        f.submit();
+        const doIt = function(){
+            const f = document.getElementById('bulkConfigForm');
+            f.action = '/admin/configs/bulk';
+            f.querySelector('[name=action]').value = action;
+            f.querySelector('[name=ids]').value = ids;
+            f.submit();
+        };
+        if(action === 'delete'){ askConfirm('کانفیگ‌های انتخاب‌شده حذف شوند؟', doIt); } else { doIt(); }
     }
 </script>
 {% endblock %}
