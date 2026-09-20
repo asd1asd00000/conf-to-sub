@@ -20,24 +20,6 @@
         </form>
     </div>
 
-    <!-- یادآوری آپدیت -->
-    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500">
-        <h2 class="text-xl font-semibold mb-2 text-orange-600">🔔 یادآوری آپدیت سابسکریپشن</h2>
-        <p class="text-xs text-gray-500 mb-4">اگر کاربر در بازه تعیین‌شده ساب را آپدیت نکند، این پیام را می‌بیند. ۰ = غیرفعال.</p>
-        <form method="post" action="/admin/settings/reminder">
-            <div class="mb-3">
-                <label class="block text-sm text-gray-700 mb-1">⏱️ حداکثر زمان بین آپدیت‌ها (ساعت)</label>
-                <div class="flex items-center gap-2">
-                    <input type="number" name="reminder_hours" value="{{ reminder_hours }}" min="0" max="8760" required class="w-32 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                    <span class="text-xs text-gray-500">۰ = غیرفعال | ۲۴ = روزانه</span>
-                </div>
-            </div>
-            <label class="block text-sm text-gray-700 mb-1">💬 متن پیام (هر خط = یک ردیف)</label>
-            <textarea name="reminder_text" rows="3" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm">{{ reminder_text }}</textarea>
-            <button class="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700">ذخیره یادآوری</button>
-        </form>
-    </div>
-
     <!-- بک‌آپ خودکار به جیمیل -->
     <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-emerald-500">
         <h2 class="text-xl font-semibold mb-2 text-emerald-600">💾 بک‌آپ خودکار به جیمیل</h2>
