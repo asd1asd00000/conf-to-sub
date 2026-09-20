@@ -26,8 +26,8 @@
     </div>
 </div>
 
-<!-- جستجو + تعداد در صفحه (واکنش‌گرا) -->
-<div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+<!-- جستجو -->
+<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
     <form method="get" action="/admin/users" class="flex flex-col md:flex-row gap-2">
         <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="w-full md:flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
         <div class="flex gap-2">
@@ -42,6 +42,17 @@
     </form>
 </div>
 
+<!-- سورت موبایل -->
+<div class="md:hidden flex gap-2 mb-4">
+    <select onchange="location.href='?sort='+this.value+'&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}'" class="flex-1 border border-gray-300 rounded-lg text-xs p-2 bg-white">
+        <option value="" {{ 'selected' if sort == '' }}>مرتب‌سازی: جدیدترین</option>
+        <option value="expire" {{ 'selected' if sort == 'expire' }}>مرتب‌سازی: تاریخ انقضا</option>
+        <option value="percent" {{ 'selected' if sort == 'percent' }}>مرتب‌سازی: مصرف زمان</option>
+        <option value="updates" {{ 'selected' if sort == 'updates' }}>مرتب‌سازی: تعداد آپدیت ساب</option>
+    </select>
+    <button onclick="location.href='?sort={{ sort }}&order={{ 'asc' if order == 'desc' else 'desc' }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}'" class="bg-gray-800 text-white px-4 rounded-lg text-xs">{{ '▲ صعودی' if order == 'asc' else '▼ نزولی' }}</button>
+</div>
+
 <!-- جدول دسکتاپ -->
 <div class="bg-white rounded-xl shadow-sm hidden md:block overflow-x-auto">
     <table class="w-full text-sm text-right">
@@ -49,9 +60,15 @@
             <tr>
                 <th class="px-3 py-3 w-10"><input type="checkbox" id="selectAll" onclick="toggleAll(this)" class="w-4 h-4"></th>
                 <th class="px-4 py-3">نام کاربری</th>
-                <th class="px-4 py-3">وضعیت / انقضا</th>
-                <th class="px-4 py-3 w-40">مصرف زمان</th>
-                <th class="px-4 py-3">آخرین دریافت ساب</th>
+                <th class="px-4 py-3">
+                    <a href="?sort=expire&order={{ 'asc' if (sort == 'expire' and order == 'desc') else 'desc' }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="hover:text-blue-600">وضعیت / انقضا {% if sort == 'expire' %}{{ '▲' if order == 'asc' else '▼' }}{% else %}↕{% endif %}</a>
+                </th>
+                <th class="px-4 py-3 w-40">
+                    <a href="?sort=percent&order={{ 'asc' if (sort == 'percent' and order == 'desc') else 'desc' }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="hover:text-blue-600">مصرف زمان {% if sort == 'percent' %}{{ '▲' if order == 'asc' else '▼' }}{% else %}↕{% endif %}</a>
+                </th>
+                <th class="px-4 py-3">
+                    <a href="?sort=updates&order={{ 'asc' if (sort == 'updates' and order == 'desc') else 'desc' }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="hover:text-blue-600">🔄 تعداد آپدیت ساب {% if sort == 'updates' %}{{ '▲' if order == 'asc' else '▼' }}{% else %}↕{% endif %}</a>
+                </th>
                 <th class="px-4 py-3">عملیات</th>
             </tr>
         </thead>
@@ -83,11 +100,11 @@
                     <div class="text-xs text-gray-500 mt-1">{{ user.percent }}٪ مصرف شده</div>
                 </td>
                 <td class="px-4 py-3">
-                    <div class="flex items-center gap-1 text-xs">
+                    <div class="text-sm font-bold text-blue-600">🔄 {{ user.sub_update_count or 0 }} بار</div>
+                    <div class="flex items-center gap-1 text-xs mt-1">
                         <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
                         <span class="text-gray-600">{{ user.seen_txt }}</span>
                     </div>
-                    <div class="text-xs text-gray-400 mt-1">🔄 {{ user.sub_update_count or 0 }} بار آپدیت</div>
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-1">
@@ -126,9 +143,9 @@
         <div class="text-xs text-gray-400 mb-1">📅 تا {{ user.expire_str }}</div>
         <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
             <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
-            آخرین دریافت ساب: {{ user.seen_txt }}
+            آخرین دریافت ساب: {{ user.seen_txt }} | 🔄 {{ user.sub_update_count or 0 }} بار
         </div>
-        <div class="text-xs text-gray-400 mb-2">🔄 {{ user.sub_update_count or 0 }} بار آپدیت | {{ user.percent }}٪ مصرف</div>
+        <div class="text-xs text-gray-400 mb-2">{{ user.percent }}٪ مصرف</div>
         <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
             <div class="bg-green-500 h-2 rounded-full" style="width: {{ user.percent }}%"></div>
         </div>
@@ -150,11 +167,11 @@
 {% if total_pages > 1 %}
 <div class="bg-white rounded-xl shadow-sm p-4 mt-6 flex items-center justify-center gap-2 text-sm">
     {% if page > 1 %}
-        <a href="/admin/users?page={{ page - 1 }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">قبلی</a>
+        <a href="?page={{ page - 1 }}&per_page={{ per_page }}&sort={{ sort }}&order={{ order }}{% if q %}&q={{ q }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">قبلی</a>
     {% endif %}
     <span class="text-gray-600">صفحه <b>{{ page }}</b> از <b>{{ total_pages }}</b> <span class="text-gray-400">(کل: {{ total_count }})</span></span>
     {% if page < total_pages %}
-        <a href="/admin/users?page={{ page + 1 }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">بعدی</a>
+        <a href="?page={{ page + 1 }}&per_page={{ per_page }}&sort={{ sort }}&order={{ order }}{% if q %}&q={{ q }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">بعدی</a>
     {% endif %}
 </div>
 {% endif %}
@@ -185,7 +202,7 @@
     </div>
 </div>
 
-<!-- مودال ویرایش (دقیق، بدون گرد کردن) -->
+<!-- مودال ویرایش -->
 <div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
         <h2 class="text-lg font-bold mb-2">✏️ ویرایش کاربر</h2>
@@ -193,12 +210,10 @@
         <form method="post" id="editForm">
             <label class="block text-sm text-gray-600 mb-1">نام کاربری</label>
             <input name="username" id="editUsername" required class="w-full p-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-
             <label class="flex items-center gap-2 text-sm text-gray-700 mb-3">
                 <input type="checkbox" name="change_expire" id="editChangeExpire" onchange="toggleExpireFields()" class="w-4 h-4">
                 تغییر تاریخ انقضا
             </label>
-
             <div id="expireFields" class="hidden grid grid-cols-3 gap-2 mb-3">
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">روز</label>
@@ -213,7 +228,6 @@
                     <input type="number" name="exp_mins" id="editMins" min="0" max="59" value="0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
             </div>
-
             <label class="flex items-center gap-2 text-sm text-gray-600 mb-3">
                 <input name="is_active" id="editActive" type="checkbox" class="w-4 h-4">
                 حساب فعال باشد
@@ -249,13 +263,10 @@
 {% block scripts %}
 <script>
     function openCreateModal(){ document.getElementById('createModal').classList.remove('hidden'); }
-    function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
-
     function toggleExpireFields(){
         const on = document.getElementById('editChangeExpire').checked;
         document.getElementById('expireFields').classList.toggle('hidden', !on);
     }
-
     function openEditModal(id, username, d, h, m, active, expireStr){
         document.getElementById('editForm').action = '/admin/users/' + id + '/edit';
         document.getElementById('editUsername').value = username;
@@ -269,13 +280,12 @@
         document.getElementById('editExpireInfo').textContent = '📅 انقضای فعلی: ' + expireStr;
         document.getElementById('editModal').classList.remove('hidden');
     }
-
     function deleteUser(id, name){
-        if(confirm('کاربر "' + name + '" برای همیشه حذف شود؟')){
+        askConfirm('کاربر "' + name + '" برای همیشه حذف شود؟', function(){
             const f = document.getElementById('deleteForm');
             f.action = '/admin/users/' + id + '/delete';
             f.submit();
-        }
+        });
     }
     function showQR(id){
         document.getElementById('qrImg').src = '/admin/users/' + id + '/qr?t=' + Date.now();
@@ -300,12 +310,14 @@
     function bulkAction(action){
         const ids = [...document.querySelectorAll('.userCheck:checked')].map(b => b.value).join(',');
         if(!ids) return;
-        if(action === 'delete' && !confirm('کاربران انتخاب‌شده برای همیشه حذف شوند؟')) return;
-        const f = document.getElementById('bulkForm');
-        f.action = '/admin/users/bulk';
-        f.querySelector('[name=action]').value = action;
-        f.querySelector('[name=ids]').value = ids;
-        f.submit();
+        const doIt = function(){
+            const f = document.getElementById('bulkForm');
+            f.action = '/admin/users/bulk';
+            f.querySelector('[name=action]').value = action;
+            f.querySelector('[name=ids]').value = ids;
+            f.submit();
+        };
+        if(action === 'delete'){ askConfirm('کاربران انتخاب‌شده برای همیشه حذف شوند؟', doIt); } else { doIt(); }
     }
 </script>
 {% endblock %}
