@@ -13,6 +13,7 @@ import io
 import math
 import qrcode
 from qrcode.image.svg import SvgPathImage
+from ..services.auth import verify_password
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
