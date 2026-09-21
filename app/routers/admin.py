@@ -18,6 +18,32 @@ from ..services.auth import verify_password
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
+# ========== ورود / خروج ==========
+
+@router.get("/login")
+def login_page(request: Request):
+    if request.session.get("admin_user"):
+        return RedirectResponse(url="/admin/", status_code=302)
+    error = request.session.pop("login_error", None)
+    return templates.TemplateResponse("login.html", {"request": request, "error": error})
+
+
+@router.post("/login")
+def login_submit(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    stored_user = get_setting(db, "admin_username", "")
+    stored_hash = get_setting(db, "admin_password_hash", "")
+    if stored_user and username == stored_user and verify_password(password, stored_hash):
+        request.session["admin_user"] = username
+        return RedirectResponse(url="/admin/", status_code=302)
+    request.session["login_error"] = "نام کاربری یا رمز عبور اشتباه است."
+    return RedirectResponse(url="/admin/login", status_code=302)
+
+
+@router.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/admin/login", status_code=302)
+
 def time_ago(dt, now):
     if not dt:
         return "هرگز"
