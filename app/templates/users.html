@@ -10,19 +10,28 @@
     <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">➕ ایجاد کاربر</button>
 </div>
 
-<!-- آمار -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between">
-        <div class="flex items-center gap-2 text-gray-600 text-sm"><span class="w-2 h-2 rounded-full bg-green-500"></span> کاربران فعال</div>
-        <div class="text-2xl font-bold">{{ active_count }}</div>
+<!-- آمار فشرده -->
+<div class="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
+    <div class="bg-white rounded-xl shadow-sm p-3 md:p-5">
+        <div class="text-xl md:text-3xl font-extrabold leading-none mb-2 md:mb-3">{{ active_count }}</div>
+        <div class="flex items-center gap-1.5 text-[10px] md:text-sm text-gray-400">
+            <span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-green-500 shrink-0"></span>
+            <span class="truncate">کاربران فعال</span>
+        </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between">
-        <div class="flex items-center gap-2 text-gray-600 text-sm"><span class="w-2 h-2 rounded-full bg-orange-500"></span> منقضی شده</div>
-        <div class="text-2xl font-bold">{{ expired_count }}</div>
+    <div class="bg-white rounded-xl shadow-sm p-3 md:p-5">
+        <div class="text-xl md:text-3xl font-extrabold leading-none mb-2 md:mb-3">{{ expired_count }}</div>
+        <div class="flex items-center gap-1.5 text-[10px] md:text-sm text-gray-400">
+            <span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-orange-500 shrink-0"></span>
+            <span class="truncate">منقضی شده</span>
+        </div>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between">
-        <div class="flex items-center gap-2 text-gray-600 text-sm"><span class="w-2 h-2 rounded-full bg-blue-500"></span> کل کاربران</div>
-        <div class="text-2xl font-bold">{{ total_count }}</div>
+    <div class="bg-white rounded-xl shadow-sm p-3 md:p-5">
+        <div class="text-xl md:text-3xl font-extrabold leading-none mb-2 md:mb-3">{{ total_count }}</div>
+        <div class="flex items-center gap-1.5 text-[10px] md:text-sm text-gray-400">
+            <span class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+            <span class="truncate">کل کاربران</span>
+        </div>
     </div>
 </div>
 
