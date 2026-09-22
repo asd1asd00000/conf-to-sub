@@ -42,3 +42,33 @@ function toggleAcc(header){
     body.classList.toggle('hidden');
     if (arrow) arrow.style.transform = opening ? 'rotate(180deg)' : 'rotate(0deg)';
 }
+
+// ===== جستجوی زنده (موبایل) =====
+let _liveTimer = null;
+function _goSearch(val, focusAfter){
+    const form = document.getElementById('liveSearchForm');
+    if (!form) return;
+    if (focusAfter) sessionStorage.setItem('liveFocus', '1');
+    const params = new URLSearchParams(new FormData(form));
+    params.set('q', val);
+    window.location.href = '/admin/users?' + params.toString();
+}
+function liveSearch(val){
+    clearTimeout(_liveTimer);
+    _liveTimer = setTimeout(function(){ _goSearch(val, true); }, 450);
+}
+function clearSearch(){
+    clearTimeout(_liveTimer);
+    _goSearch('', true);
+}
+document.addEventListener('DOMContentLoaded', function(){
+    if (sessionStorage.getItem('liveFocus') === '1') {
+        sessionStorage.removeItem('liveFocus');
+        const input = document.querySelector('#liveSearchForm input[name="q"]');
+        if (input) {
+            input.focus();
+            const len = input.value.length;
+            input.setSelectionRange(len, len);
+        }
+    }
+});
