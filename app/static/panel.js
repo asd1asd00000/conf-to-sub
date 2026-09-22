@@ -23,7 +23,7 @@ function toggleMenu(btn){
     closeAllMenus();
     if (wasHidden) {
         panel.classList.remove('hidden');
-        menu.classList.add('menu-open');   // ⭐ زیندکس بالا هنگام باز بودن
+        menu.classList.add('menu-open');
     }
 }
 function closeAllMenus(){
@@ -33,3 +33,12 @@ function closeAllMenus(){
 document.addEventListener('click', function(e){
     if (!e.target.closest('.menu')) closeAllMenus();
 });
+
+// ===== آکاردئون موبایل (کارت کاربران) =====
+function toggleAcc(header){
+    const body = header.parentElement.querySelector('.acc-body');
+    const arrow = header.querySelector('.acc-arrow');
+    const opening = body.classList.contains('hidden');
+    body.classList.toggle('hidden');
+    if (arrow) arrow.style.transform = opening ? 'rotate(180deg)' : 'rotate(0deg)';
+}
