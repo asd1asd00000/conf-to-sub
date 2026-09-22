@@ -4,3 +4,7 @@
 ```
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/asd1asd00000/conf-to-sub/main/install.sh)"
 ```
+حذف پوشه نصب برای نصب مجدد :
+```
+rm -rf conf-to-sub
+```
