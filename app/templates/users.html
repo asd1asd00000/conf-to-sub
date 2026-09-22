@@ -31,11 +31,16 @@
     <form method="get" action="/admin/users" class="flex flex-col md:flex-row gap-2">
         <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="w-full md:flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
         <div class="flex gap-2">
-            <select name="per_page" class="flex-1 md:flex-none border border-gray-300 rounded-lg text-sm p-2 bg-white">
-                {% for n in [10, 20, 50, 100] %}
-                <option value="{{ n }}" {{ 'selected' if per_page == n }}>{{ n }} تایی</option>
-                {% endfor %}
-            </select>
+            <div class="menu relative flex-1 md:flex-none md:w-28">
+                <button type="button" class="menu-btn" onclick="toggleMenu(this)">
+                    <span>{{ per_page }} تایی</span><span class="text-[9px] opacity-60">▼</span>
+                </button>
+                <div class="menu-panel hidden">
+                    {% for n in [10, 20, 50, 100] %}
+                    <a href="?per_page={{ n }}&sort={{ sort }}&order={{ order }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if per_page == n }}">{{ n }} تایی{{ ' ✓' if per_page == n }}</a>
+                    {% endfor %}
+                </div>
+            </div>
             <button class="flex-1 md:flex-none bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">جستجو</button>
             {% if q %}<a href="/admin/users" class="flex-1 md:flex-none text-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">حذف فیلتر</a>{% endif %}
         </div>
