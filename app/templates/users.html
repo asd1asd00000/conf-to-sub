@@ -94,10 +94,12 @@
                     <div class="text-xs text-gray-400 mt-0.5">📅 تا {{ user.expire_str }}</div>
                 </td>
                 <td class="px-4 py-3">
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ user.percent }}%"></div>
+                    <div class="progress-track">
+                        <div class="progress-bar {{ 'progress-red' if user.expired or user.percent >= 100 else 'progress-green' }}" style="width: {{ user.percent }}%"></div>
                     </div>
-                    <div class="text-xs text-gray-500 mt-1">{{ user.percent }}٪ مصرف شده</div>
+                    <div class="text-xs mt-1 {{ 'text-red-400 font-bold' if user.expired or user.percent >= 100 else 'text-gray-400' }}">
+                        {{ user.percent }}٪ {{ '⚠️ منقضی' if user.expired else 'مصرف شده' }}
+                    </div>
                 </td>
                 <td class="px-4 py-3">
                     <div class="text-sm font-bold text-blue-600">🔄 {{ user.sub_update_count or 0 }} بار</div>
