@@ -112,6 +112,11 @@
 
     const progressSteps = ['پردازش لینک‌ها...', 'بررسی فرمت کانفیگ‌ها...', 'تست اتصال سرورها...', 'ذخیره نتایج...'];
     function showProgress(){
+        const ta = document.getElementById('rawText');
+        if (!ta || !ta.value.trim()) {
+            jsToast('⚠️ اول چند کانفیگ در باکس وارد کنید!');
+            return false;
+        }
         document.getElementById('progressModal').classList.remove('hidden');
         document.getElementById('saveBtn').disabled = true;
         let i = 0;
@@ -133,7 +138,7 @@
             f.submit();
         });
     }
-    }
+
     function updateBulkConfigs(){
         const boxes = document.querySelectorAll('.configCheck:checked');
         document.getElementById('bulkCountConfigs').textContent = boxes.length;
