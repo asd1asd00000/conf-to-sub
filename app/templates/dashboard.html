@@ -109,20 +109,6 @@
 
 {% block scripts %}
 <script>
-    async function pasteConfig() {
-        const ta = document.getElementById('raw_text') || document.querySelector('textarea[name="raw_text"]');
-        if (!ta) { jsToast('❌ textarea پیدا نشد'); return; }
-        try {
-            const text = await navigator.clipboard.readText();
-            if (!text) { jsToast('⚠️ کلیپ‌بورد خالی است'); return; }
-            ta.value = text;
-            ta.focus();
-            jsToast('📋 از کلیپ‌بورد جاگذاری شد (' + text.split('\n').filter(l => l.trim()).length + ' خط)');
-        } catch (err) {
-            // Fallback: اگر clipboard API مسدود بود
-            jsToast('❌ دسترسی به کلیپ‌بورد داده نشد. Ctrl+V بزنید.');
-        }
-    }
 
     const progressSteps = ['پردازش لینک‌ها...', 'بررسی فرمت کانفیگ‌ها...', 'تست اتصال سرورها...', 'ذخیره نتایج...'];
     function showProgress(){
