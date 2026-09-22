@@ -49,13 +49,19 @@
 
 <!-- سورت موبایل -->
 <div class="md:hidden flex gap-2 mb-4">
-    <select onchange="location.href='?sort='+this.value+'&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}'" class="flex-1 border border-gray-300 rounded-lg text-xs p-2 bg-white">
-        <option value="" {{ 'selected' if sort == '' }}>مرتب‌سازی: جدیدترین</option>
-        <option value="expire" {{ 'selected' if sort == 'expire' }}>مرتب‌سازی: تاریخ انقضا</option>
-        <option value="percent" {{ 'selected' if sort == 'percent' }}>مرتب‌سازی: مصرف زمان</option>
-        <option value="updates" {{ 'selected' if sort == 'updates' }}>مرتب‌سازی: تعداد آپدیت ساب</option>
-    </select>
-    <button onclick="location.href='?sort={{ sort }}&order={{ 'asc' if order == 'desc' else 'desc' }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}'" class="bg-gray-800 text-white px-4 rounded-lg text-xs">{{ '▲ صعودی' if order == 'asc' else '▼ نزولی' }}</button>
+    <div class="menu relative flex-1">
+        <button type="button" class="menu-btn" onclick="toggleMenu(this)">
+            <span>{{ {'': 'مرتب‌سازی: جدیدترین', 'expire': 'مرتب‌سازی: انقضا', 'percent': 'مرتب‌سازی: مصرف زمان', 'updates': 'مرتب‌سازی: تعداد آپدیت'}[sort] }}</span>
+            <span class="text-[9px] opacity-60">▼</span>
+        </button>
+        <div class="menu-panel hidden">
+            <a href="?sort=&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == '' }}">جدیدترین{{ ' ✓' if sort == '' }}</a>
+            <a href="?sort=expire&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == 'expire' }}">تاریخ انقضا{{ ' ✓' if sort == 'expire' }}</a>
+            <a href="?sort=percent&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == 'percent' }}">مصرف زمان{{ ' ✓' if sort == 'percent' }}</a>
+            <a href="?sort=updates&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == 'updates' }}">تعداد آپدیت ساب{{ ' ✓' if sort == 'updates' }}</a>
+        </div>
+    </div>
+    <button onclick="location.href='?sort={{ sort }}&order={{ 'asc' if order == 'desc' else 'desc' }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}'" class="menu-btn w-auto px-4">{{ '▲ صعودی' if order == 'asc' else '▼ نزولی' }}</button>
 </div>
 
 <!-- جدول دسکتاپ -->
