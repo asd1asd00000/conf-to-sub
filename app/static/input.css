@@ -2,53 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== فونت فارسی وزیرمتن (کاملاً محلی) ===== */
+/* ===== فونت فارسی وزیرمتن (محلی) ===== */
 @font-face {
     font-family: 'Vazirmatn';
     src: url('/static/fonts/Vazirmatn-Regular.woff2') format('woff2');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
     font-family: 'Vazirmatn';
     src: url('/static/fonts/Vazirmatn-Medium.woff2') format('woff2');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 500; font-style: normal; font-display: swap;
 }
 @font-face {
     font-family: 'Vazirmatn';
     src: url('/static/fonts/Vazirmatn-Bold.woff2') format('woff2');
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
+    font-weight: 700; font-style: normal; font-display: swap;
 }
 
-/* ===== پایه: پس‌زمینه، فونت، انتخاب متن ===== */
+/* ===== پایه ===== */
 body {
     font-family: 'Vazirmatn', Tahoma, sans-serif !important;
     min-height: 100vh;
 }
-
-/* پس‌زمینه روشن برای صفحات داخلی پنل */
-.bg-app {
-    background: linear-gradient(180deg, #f8fafc 0%, #edf1f7 100%);
-}
-::selection { background: #bfdbfe; color: #1e3a8a; }
+::selection { background: rgba(250, 204, 21, 0.25); color: #facc15; }
 button, a, input, select, textarea { transition: all .15s ease; }
+input[type="checkbox"] { accent-color: #facc15; }
 
-/* ===== اسکرول‌بار زیبا ===== */
+/* ===== اسکرول‌بار تاریک ===== */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; border: 2px solid #eef2f7; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 8px; border: 2px solid #0a0a0b; }
+::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
-/* ===== ناوبری: افکت شیشه‌ای ===== */
-nav {
-    background: rgba(255, 255, 255, 0.85) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+/* ===== ناوبری شیشه‌ای تاریک ===== */
+.nav-glass {
+    background: rgba(10, 10, 11, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(250, 204, 21, 0.18);
 }
 
 /* ===== ورود نرم صفحه ===== */
@@ -58,11 +49,11 @@ main { animation: pageIn .35s ease-out; }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== هاور ظریف روی کارت‌ها ===== */
+/* ===== هاور ظریف کارت‌ها ===== */
 main .shadow-sm { transition: box-shadow .2s ease, transform .2s ease; }
 main .shadow-sm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.65);
 }
 
 /* ===== انیمیشن توست‌ها ===== */
@@ -71,21 +62,18 @@ main .shadow-sm:hover {
 .toast-enter { animation: slideIn .4s ease-out forwards; }
 .toast-exit  { animation: fadeOut .4s ease-out forwards; }
 
-/* ===== جهت چپ‌به‌راست برای متن‌های انگلیسی ===== */
 .dir-ltr { direction: ltr; }
 
 /* =====================================================
    🎨 DESIGN SYSTEM: Dark Gold Glass
-   (بعداً برای کل پنل استفاده می‌شود)
    ===================================================== */
-
 :root {
     --gold: #facc15;
     --gold-soft: rgba(250, 204, 21, 0.45);
     --glass-border: rgba(255, 255, 255, 0.12);
+    color-scheme: dark;
 }
 
-/* ----- پس‌زمینه مشکی با رگه‌های طلایی ----- */
 .bg-dark-gold {
     background-color: #0a0a0b;
     background-image:
@@ -97,7 +85,6 @@ main .shadow-sm:hover {
         linear-gradient(295deg, transparent 70%, rgba(255, 255, 255, 0.04) 74%, transparent 79%);
 }
 
-/* ----- کارت شیشه‌ای ----- */
 .glass-card {
     position: relative;
     overflow: hidden;
@@ -121,26 +108,10 @@ main .shadow-sm:hover {
     100% { transform: translateX(70%); }
 }
 
-/* ----- گوشه‌های تزئینی (مثل تصویر مرجع) ----- */
-.corner {
-    position: absolute;
-    width: 64px;
-    height: 64px;
-    border: 1px solid var(--gold-soft);
-    pointer-events: none;
-}
-.corner-tl {
-    top: -18px; left: -18px;
-    border-right: none; border-bottom: none;
-    clip-path: polygon(0 0, 100% 0, 0 100%);
-}
-.corner-br {
-    bottom: -18px; right: -18px;
-    border-left: none; border-top: none;
-    clip-path: polygon(100% 100%, 100% 0, 0 100%);
-}
+.corner { position: absolute; width: 64px; height: 64px; border: 1px solid var(--gold-soft); pointer-events: none; }
+.corner-tl { top: -18px; left: -18px; border-right: none; border-bottom: none; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.corner-br { bottom: -18px; right: -18px; border-left: none; border-top: none; clip-path: polygon(100% 100%, 100% 0, 0 100%); }
 
-/* ----- آیکن داخل قاب طلایی ----- */
 .icon-chip {
     width: 58px; height: 58px;
     border-radius: 16px;
@@ -151,7 +122,6 @@ main .shadow-sm:hover {
     box-shadow: inset 0 0 24px rgba(250, 204, 21, 0.18), 0 0 18px rgba(250, 204, 21, 0.15);
 }
 
-/* ----- اینپوت تاریک با فوکوس طلایی ----- */
 .input-gold {
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid var(--glass-border);
@@ -166,7 +136,6 @@ main .shadow-sm:hover {
     box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.15), 0 0 20px rgba(250, 204, 21, 0.25);
 }
 
-/* ----- دکمه طلایی ----- */
 .btn-gold {
     background: linear-gradient(180deg, #fde047, #eab308);
     color: #1c1917;
@@ -182,7 +151,6 @@ main .shadow-sm:hover {
 }
 .btn-gold:active { transform: translateY(0) scale(.985); }
 
-/* ----- پیام خطای شیشه‌ای ----- */
 .error-glass {
     background: rgba(127, 29, 29, 0.28);
     border: 1px solid rgba(248, 113, 113, 0.35);
@@ -192,3 +160,80 @@ main .shadow-sm:hover {
     font-size: .8rem;
     backdrop-filter: blur(8px);
 }
+
+/* =====================================================
+   🌑 لایه تم تاریک پنل (تبدیل خودکار کلاس‌های روشن)
+   ===================================================== */
+
+/* کارت‌ها و پنل‌های سفید → شیشه تاریک */
+.bg-white {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* خاکستری‌های روشن → شیشه تاریک */
+.bg-gray-50  { background: rgba(255, 255, 255, 0.04) !important; }
+.bg-gray-100 { background: rgba(255, 255, 255, 0.06) !important; }
+.bg-gray-200 { background: rgba(255, 255, 255, 0.10) !important; }
+
+/* متن‌ها → روشن */
+.text-gray-800, .text-gray-700 { color: #f5f5f4 !important; }
+.text-gray-600 { color: #d6d3d1 !important; }
+.text-gray-500 { color: #a8a29e !important; }
+.text-gray-400 { color: #8b8680 !important; }
+
+/* حاشیه‌ها */
+.border-gray-100, .border-gray-200 { border-color: rgba(255, 255, 255, 0.08) !important; }
+.border-gray-300 { border-color: rgba(255, 255, 255, 0.14) !important; }
+.divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255, 255, 255, 0.07) !important; }
+
+/* فرم‌ها */
+input, select, textarea {
+    background: rgba(0, 0, 0, 0.35) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #f5f5f4 !important;
+}
+input::placeholder, textarea::placeholder { color: rgba(245, 245, 244, 0.35) !important; }
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: rgba(250, 204, 21, 0.8) !important;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.15) !important;
+}
+select option { background: #1c1917; color: #f5f5f4; }
+
+/* دکمه‌های اصلی: آبی → طلایی */
+.bg-blue-600 { background: linear-gradient(180deg, #fde047, #eab308) !important; color: #1c1917 !important; font-weight: 700; }
+.hover\:bg-blue-700:hover { background: linear-gradient(180deg, #fde047, #ca8a04) !important; color: #1c1917 !important; }
+
+/* رنگ‌های تأکیدی → نسخه روشن برای زمینه تاریک */
+.text-blue-600   { color: #facc15 !important; }
+.text-green-600  { color: #4ade80 !important; }
+.text-purple-600 { color: #c084fc !important; }
+.text-red-600    { color: #f87171 !important; }
+.text-orange-600 { color: #fb923c !important; }
+.text-emerald-600{ color: #34d399 !important; }
+.text-teal-600   { color: #2dd4bf !important; }
+
+/* بج‌ها و پس‌زمینه‌های ملایم */
+.bg-green-100  { background: rgba(16, 185, 129, 0.15) !important; }
+.text-green-700 { color: #6ee7b7 !important; }
+.bg-orange-100 { background: rgba(249, 115, 22, 0.15) !important; }
+.text-orange-700 { color: #fdba74 !important; }
+.bg-red-50     { background: rgba(239, 68, 68, 0.12) !important; }
+.bg-blue-50    { background: rgba(250, 204, 21, 0.10) !important; }
+.bg-green-50   { background: rgba(16, 185, 129, 0.12) !important; }
+.bg-purple-50  { background: rgba(168, 85, 247, 0.12) !important; }
+.bg-emerald-50 { background: rgba(16, 185, 129, 0.12) !important; }
+.bg-yellow-50  { background: rgba(250, 204, 21, 0.12) !important; }
+.bg-teal-50    { background: rgba(20, 184, 166, 0.12) !important; }
+
+/* هاور ردیف جدول */
+.hover\:bg-gray-50:hover { background: rgba(255, 255, 255, 0.05) !important; }
+
+/* نوار پیشرفت → طلایی */
+.bg-green-500 { background: linear-gradient(90deg, #facc15, #ca8a04) !important; }
+
+/* QR روی زمینه سفید (تا دیده شود) */
+#qrImg { background: #ffffff; padding: 10px; border-radius: 14px; }
