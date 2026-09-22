@@ -34,7 +34,7 @@ echo "📦 شروع نصب..."
 
 # ===== ۳) پیش‌نیازها =====
 apt update -y
-apt install -y git python3-venv python3-pip nginx certbot python3-certbot-nginx sqlite3
+apt install -y git python3-venv python3-pip nginx certbot python3-certbot-nginx sqlite3 curl
 
 # ===== ۴) دانلود پروژه =====
 if [ -d "$APP_DIR/.git" ]; then
@@ -52,7 +52,16 @@ python3 -m venv venv
 ./venv/bin/pip install --upgrade pip -q
 ./venv/bin/pip install -r requirements.txt -q -i "$PIP_MIRROR" --trusted-host pypi.tuna.tsinghua.edu.cn
 
-# ===== ۶) سرویس systemd =====
+# ===== ۶) ساخت CSS محلی (Tailwind build) =====
+echo "🎨 Building local CSS..."
+chmod +x build_css.sh 2>/dev/null || true
+./build_css.sh || {
+    echo "❌ CSS build failed! Panel needs app/static/style.css to render."
+    echo "   Try manually: ./build_css.sh"
+    exit 1
+}
+
+# ===== ۷) سرویس systemd =====
 cat > /etc/systemd/system/$SERVICE_NAME.service <<EOF
 [Unit]
 Description=Gift Panel (conf-to-sub) FastAPI Service
@@ -74,7 +83,7 @@ systemctl enable $SERVICE_NAME
 systemctl restart $SERVICE_NAME
 sleep 3
 
-# ===== ۷) Nginx Reverse Proxy =====
+# ===== ۸) Nginx Reverse Proxy =====
 cat > /etc/nginx/sites-available/$SERVICE_NAME <<EOF
 server {
     listen 80;
@@ -96,17 +105,17 @@ ln -sf /etc/nginx/sites-available/$SERVICE_NAME /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 
-# ===== ۸) SSL (Let's Encrypt) =====
+# ===== ۹) SSL (Let's Encrypt) =====
 echo "🔐 دریافت گواهی SSL برای $DOMAIN ..."
 certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email "admin@$DOMAIN" --redirect \
     && echo "✅ SSL فعال شد!" \
     || echo "⚠️  SSL ناموفق! مطمئن شوید DNS دامنه به همین سرور اشاره می‌کند. (فعلاً HTTP)"
 
-# ===== ۹) ساخت اعتبارنامه ادمین =====
+# ===== ۱۰) ساخت اعتبارنامه ادمین =====
 cd "$APP_DIR"
 ./venv/bin/python set_admin.py "$ADMIN_USER" "$ADMIN_PASS"
 
-# ===== ۱۰) خلاصه نهایی =====
+# ===== ۱۱) خلاصه نهایی =====
 echo ""
 echo "=================================================="
 echo "✅ نصب کامل شد!"
@@ -117,4 +126,5 @@ echo "🔑 رمز عبور:      $ADMIN_PASS  $GENERATED_PASS"
 echo "--------------------------------------------------"
 echo "⚠️  این اطلاعات را همین الان ذخیره کنید!"
 echo "🔧 تغییر بعدی:    ./venv/bin/python set_admin.py USER PASS"
+echo "🎨 بعد از تغییر قالب: ./build_css.sh"
 echo "=================================================="
