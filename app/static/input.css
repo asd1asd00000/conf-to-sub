@@ -28,8 +28,12 @@
 /* ===== پایه: پس‌زمینه، فونت، انتخاب متن ===== */
 body {
     font-family: 'Vazirmatn', Tahoma, sans-serif !important;
-    background: linear-gradient(180deg, #f8fafc 0%, #edf1f7 100%) !important;
     min-height: 100vh;
+}
+
+/* پس‌زمینه روشن برای صفحات داخلی پنل */
+.bg-app {
+    background: linear-gradient(180deg, #f8fafc 0%, #edf1f7 100%);
 }
 ::selection { background: #bfdbfe; color: #1e3a8a; }
 button, a, input, select, textarea { transition: all .15s ease; }
