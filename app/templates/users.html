@@ -135,40 +135,47 @@
     </table>
 </div>
 
-<!-- کارت‌های موبایل -->
+<!-- کارت‌های موبایل (آکاردئونی + هدر پیشرفت‌دار) -->
 <div class="md:hidden space-y-3">
 {% for user in users %}
-    <div class="bg-white rounded-xl shadow-sm p-4">
-        <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
-                <input type="checkbox" class="userCheck w-4 h-4" value="{{ user.id }}" onclick="updateBulk()">
-                <div class="font-bold">{{ user.username }} <span class="text-xs text-gray-400">#{{ user.id }}</span></div>
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <!-- هدر: همیشه قابل مشاهده + نقش نوار پیشرفت -->
+        <div class="acc-head cursor-pointer select-none" onclick="toggleAcc(this)">
+            <div class="acc-fill {{ 'acc-fill-red' if user.expired or user.percent >= 100 else 'acc-fill-green' }}" style="width: {{ user.percent }}%"></div>
+            <div class="relative flex items-center gap-2 p-4">
+                <input type="checkbox" class="userCheck w-4 h-4" value="{{ user.id }}" onclick="event.stopPropagation(); updateBulk()">
+                <div class="flex-1 font-bold truncate">{{ user.username }} <span class="text-xs text-gray-400">#{{ user.id }}</span></div>
+                <button type="button" title="کپی لینک" onclick="event.stopPropagation(); copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg bg-green-50 text-green-600">🔗</button>
+                {% if not user.is_active %}
+                    <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
+                {% elif user.expired %}
+                    <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
+                {% else %}
+                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
+                {% endif %}
+                <span class="acc-arrow text-gray-500 text-[10px]">▼</span>
             </div>
-            {% if not user.is_active %}
-                <span class="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">غیرفعال</span>
-            {% elif user.expired %}
-                <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs">منقضی</span>
-            {% else %}
-                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
-            {% endif %}
         </div>
-        <div class="text-xs text-gray-600 mb-1">{% if user.expired %}⌛ منقضی شده{% else %}⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه مانده{% endif %}</div>
-        <div class="text-xs text-gray-400 mb-1">📅 تا {{ user.expire_str }}</div>
-        <div class="text-xs text-gray-500 mb-1 flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
-            آخرین دریافت ساب: {{ user.seen_txt }} | 🔄 {{ user.sub_update_count or 0 }} بار
-        </div>
-        <div class="text-xs text-gray-400 mb-2">{{ user.percent }}٪ مصرف</div>
-        <div class="progress-track mb-3">
-            <div class="progress-bar {{ 'progress-red' if user.expired or user.percent >= 100 else 'progress-green' }}" style="width: {{ user.percent }}%"></div>
-        </div>
-        <div class="flex items-center justify-between border-t border-gray-100 pt-3">
-            <div class="flex gap-1">
-                <button onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ user.days_left }}, {{ user.hours_left }}, {{ user.mins_left }}, {{ "true" if user.is_active else "false" }}, "{{ user.expire_str }}")' class="p-2 rounded-lg bg-blue-50 text-blue-600">✏️</button>
-                <button onclick="copyText('{{ base_url }}/sub/{{ user.sub_uuid }}')" class="p-2 rounded-lg bg-green-50 text-green-600">🔗</button>
-                <button onclick="showQR({{ user.id }})" class="p-2 rounded-lg bg-purple-50 text-purple-600">▣</button>
+
+        <!-- بدنه مخفی: با لمس هدر باز/بسته می‌شود -->
+        <div class="acc-body hidden border-t border-white/5 px-4 py-3 space-y-2 text-xs">
+            <div class="text-gray-300">{% if user.expired %}⌛ منقضی شده{% else %}⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه مانده{% endif %}</div>
+            <div class="text-gray-400">📅 تا {{ user.expire_str }}</div>
+            <div class="flex items-center gap-1 text-gray-400">
+                <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
+                آخرین دریافت ساب: {{ user.seen_txt }} | 🔄 {{ user.sub_update_count or 0 }} بار
             </div>
-            <button onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg bg-red-50 text-red-600 text-xs">🗑️ حذف</button>
+            <div class="text-gray-400">{{ user.percent }}٪ مصرف</div>
+            <div class="progress-track">
+                <div class="progress-bar {{ 'progress-red' if user.expired or user.percent >= 100 else 'progress-green' }}" style="width: {{ user.percent }}%"></div>
+            </div>
+            <div class="flex items-center justify-between border-t border-white/5 pt-3">
+                <div class="flex gap-1">
+                    <button type="button" onclick='openEditModal({{ user.id }}, "{{ user.username }}", {{ user.days_left }}, {{ user.hours_left }}, {{ user.mins_left }}, {{ "true" if user.is_active else "false" }}, "{{ user.expire_str }}")' class="p-2 rounded-lg bg-blue-50 text-blue-600">✏️</button>
+                    <button type="button" onclick="showQR({{ user.id }})" class="p-2 rounded-lg bg-purple-50 text-purple-600">▣</button>
+                </div>
+                <button type="button" onclick="deleteUser({{ user.id }}, '{{ user.username }}')" class="p-2 rounded-lg bg-red-50 text-red-600">🗑️ حذف</button>
+            </div>
         </div>
     </div>
 {% else %}
