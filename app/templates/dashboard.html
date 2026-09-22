@@ -9,7 +9,7 @@
         <h2 class="text-xl font-semibold mb-4 text-green-600">➕ افزودن کانفیگ دستی</h2>
         <form action="/admin/add-config" method="POST" id="addConfigForm" onsubmit="return showProgress()">
             <div class="flex gap-2 mb-2">
-                <button type="button" onclick="pasteConfigs()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded-lg text-xs">📋 جاگذاری</button>
+                <button type="button" onclick="pasteConfig()" class="bg-white/5 hover:bg-white/10 text-yellow-400 border border-yellow-400/30 px-4 py-2 rounded-lg text-sm">📋 جاگذاری از کلیپ‌بورد</button>
                 <button type="button" onclick="document.getElementById('rawText').value=''" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-xs">🧹 پاک کردن</button>
             </div>
             <textarea id="rawText" name="raw_text" rows="8" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none text-left dir-ltr text-sm" placeholder="vless://...&#10;vmess://...&#10;trojan://..."></textarea>
