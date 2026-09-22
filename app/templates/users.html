@@ -35,25 +35,69 @@
     </div>
 </div>
 
-<!-- جستجو -->
-<div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-    <form method="get" action="/admin/users" class="flex flex-col md:flex-row gap-2">
-        <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="w-full md:flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
-        <div class="flex gap-2">
-            <div class="menu relative flex-1 md:flex-none md:w-28">
-                <button type="button" class="menu-btn" onclick="toggleMenu(this)">
-                    <span>{{ per_page }} تایی</span><span class="text-[9px] opacity-60">▼</span>
-                </button>
-                <div class="menu-panel hidden">
-                    {% for n in [10, 20, 50, 100] %}
-                    <a href="?per_page={{ n }}&sort={{ sort }}&order={{ order }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if per_page == n }}">{{ n }} تایی{{ ' ✓' if per_page == n }}</a>
-                    {% endfor %}
-                </div>
+<!-- جستجو: دسکتاپ (بدون تغییر) -->
+<div class="hidden md:block bg-white rounded-xl shadow-sm p-4 mb-4">
+    <form method="get" action="/admin/users" class="flex flex-row gap-2">
+        <input type="text" name="q" value="{{ q }}" placeholder="🔍 جستجوی نام کاربری..." class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+        <div class="menu relative w-28">
+            <button type="button" class="menu-btn" onclick="toggleMenu(this)">
+                <span>{{ per_page }} تایی</span><span class="text-[9px] opacity-60">▼</span>
+            </button>
+            <div class="menu-panel hidden">
+                {% for n in [10, 20, 50, 100] %}
+                <a href="?per_page={{ n }}&sort={{ sort }}&order={{ order }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if per_page == n }}">{{ n }} تایی{{ ' ✓' if per_page == n }}</a>
+                {% endfor %}
             </div>
-            <button class="flex-1 md:flex-none bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">جستجو</button>
-            {% if q %}<a href="/admin/users" class="flex-1 md:flex-none text-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">حذف فیلتر</a>{% endif %}
         </div>
+        <button class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm">جستجو</button>
+        {% if q %}<a href="/admin/users" class="text-center bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm">حذف فیلتر</a>{% endif %}
     </form>
+</div>
+
+<!-- جستجو زنده + اقدامات: فقط موبایل -->
+<div class="md:hidden flex gap-2 mb-4">
+    <form method="get" action="/admin/users" id="liveSearchForm" class="relative flex-1">
+        <input type="text" name="q" value="{{ q }}" placeholder="جستجوی نام کاربری..."
+               oninput="liveSearch(this.value)"
+               class="w-full p-3 pr-9 {% if q %}pl-9{% endif %} rounded-xl text-sm">
+        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-sm">🔍</span>
+        {% if q %}
+        <button type="button" onclick="clearSearch()" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">✕</button>
+        {% endif %}
+        <input type="hidden" name="sort" value="{{ sort }}">
+        <input type="hidden" name="order" value="{{ order }}">
+        <input type="hidden" name="per_page" value="{{ per_page }}">
+    </form>
+
+    <button type="button" onclick="openCreateModal()" class="icon-btn icon-btn-gold" title="ایجاد کاربر">＋</button>
+
+    <div class="menu relative menu-left">
+        <button type="button" class="icon-btn" onclick="toggleMenu(this)" title="مرتب‌سازی و نمایش">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2.2" fill="currentColor" stroke="none"/>
+                <line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2.2" fill="currentColor" stroke="none"/>
+                <line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2.2" fill="currentColor" stroke="none"/>
+            </svg>
+        </button>
+        <div class="menu-panel hidden w-64">
+            <div class="menu-title">مرتب‌سازی بر اساس</div>
+            <a href="?sort=&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == '' }}">جدیدترین{{ ' ✓' if sort == '' }}</a>
+            <a href="?sort=expire&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == 'expire' }}">تاریخ انقضا{{ ' ✓' if sort == 'expire' }}</a>
+            <a href="?sort=percent&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == 'percent' }}">مصرف زمان{{ ' ✓' if sort == 'percent' }}</a>
+            <a href="?sort=updates&order={{ order }}&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if sort == 'updates' }}">تعداد آپدیت ساب{{ ' ✓' if sort == 'updates' }}</a>
+            <div class="menu-title">ترتیب</div>
+            <a href="?sort={{ sort }}&order=desc&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if order == 'desc' }}">نزولی{{ ' ✓' if order == 'desc' }}</a>
+            <a href="?sort={{ sort }}&order=asc&per_page={{ per_page }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if order == 'asc' }}">صعودی{{ ' ✓' if order == 'asc' }}</a>
+            <div class="menu-title">تعداد در صفحه</div>
+            {% for n in [10, 20, 50, 100] %}
+            <a href="?sort={{ sort }}&order={{ order }}&per_page={{ n }}{% if q %}&q={{ q }}{% endif %}" class="menu-item {{ 'menu-active' if per_page == n }}">{{ n }} تایی{{ ' ✓' if per_page == n }}</a>
+            {% endfor %}
+            {% if q %}
+            <div class="menu-title">فیلتر</div>
+            <a href="?sort={{ sort }}&order={{ order }}&per_page={{ per_page }}" class="menu-item" style="color:#f87171;">✕ حذف فیلتر جستجو</a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <!-- سورت موبایل -->
