@@ -109,6 +109,7 @@
 
 {% block scripts %}
 <script>
+<script>
     async function pasteConfig() {
         const ta = document.getElementById('raw_text') || document.querySelector('textarea[name="raw_text"]');
         if (!ta) { jsToast('❌ textarea پیدا نشد'); return; }
@@ -123,6 +124,7 @@
             jsToast('❌ دسترسی به کلیپ‌بورد داده نشد. Ctrl+V بزنید.');
         }
     }
+</script>
 
     const progressSteps = ['پردازش لینک‌ها...', 'بررسی فرمت کانفیگ‌ها...', 'تست اتصال سرورها...', 'ذخیره نتایج...'];
     function showProgress(){
