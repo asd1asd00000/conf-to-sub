@@ -22,11 +22,16 @@
     <div class="bg-white p-6 rounded-xl shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-semibold">📦 کانفیگ‌های ذخیره‌شده <span class="text-green-600 font-bold">({{ total_count }})</span></h2>
-            <select onchange="changePerPage(this.value)" class="border border-gray-300 rounded-lg text-xs p-1 bg-white">
-                {% for n in [10, 20, 50, 100] %}
-                <option value="{{ n }}" {{ 'selected' if per_page == n }}>{{ n }} تایی</option>
-                {% endfor %}
-            </select>
+            <div class="menu relative w-24">
+                <button type="button" class="menu-btn text-xs" onclick="toggleMenu(this)">
+                    <span>{{ per_page }} تایی</span><span class="text-[9px] opacity-60">▼</span>
+                </button>
+                <div class="menu-panel hidden">
+                    {% for n in [10, 20, 50, 100] %}
+                    <a href="/admin/?page=1&per_page={{ n }}" class="menu-item {{ 'menu-active' if per_page == n }}">{{ n }} تایی{{ ' ✓' if per_page == n }}</a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
 
         <!-- جدول دسکتاپ -->
