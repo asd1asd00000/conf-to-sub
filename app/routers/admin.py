@@ -244,7 +244,7 @@ def bulk_configs(request: Request, action: str = Form(...), ids: str = Form(...)
     return RedirectResponse(url="/admin/", status_code=303)
 
 @router.post("/add-config")
-async def add_config(request: Request, raw_text: str = Form(...), db: Session = Depends(get_db)):
+async def add_config(request: Request, raw_text: str = Form(""), db: Session = Depends(get_db)):
     try:
         lines = [l.strip() for l in raw_text.strip().split('\n') if l.strip()]
         now = datetime.utcnow()
