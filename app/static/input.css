@@ -262,6 +262,9 @@ select option { background: #1c1917; color: #f5f5f4; }
 .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
 
 /* ===== منوی سفارشی شیشه‌ای (جایگزین select بومی مرورگر) ===== */
+.menu { position: relative; z-index: 1; }
+.menu.menu-open { z-index: 50; }
+
 .menu-btn {
     display: flex; align-items: center; justify-content: space-between; gap: .5rem;
     background: rgba(0, 0, 0, 0.35);
@@ -273,10 +276,14 @@ select option { background: #1c1917; color: #f5f5f4; }
     width: 100%;
 }
 .menu-btn:hover { border-color: rgba(250, 204, 21, 0.4); }
+
 .menu-panel {
     position: absolute;
     top: calc(100% + 6px);
-    right: 0; left: 0;
+    right: 0;                        /* فقط لبه راست — برای RTL طبیعی */
+    left: auto;                      /* ⭐ حذف left:0 که باعث بیرون‌زدگی می‌شد */
+    min-width: 11rem;
+    max-width: calc(100vw - 2rem);   /* ⭐ هرگز از صفحه بیرون نمی‌زند */
     background: rgba(18, 18, 20, 0.94);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -285,7 +292,6 @@ select option { background: #1c1917; color: #f5f5f4; }
     overflow: hidden;
     z-index: 60;
     box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.8);
-    min-width: 9rem;
 }
 .menu-item {
     display: flex; align-items: center; justify-content: space-between;
