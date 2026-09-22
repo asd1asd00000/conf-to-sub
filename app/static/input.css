@@ -300,3 +300,27 @@ select option { background: #1c1917; color: #f5f5f4; }
 .menu-active { background: rgba(250, 204, 21, 0.12); color: #facc15; font-weight: 700; }
 /* منوهایی که نزدیک لبه چپ هستند، از چپ باز شوند */
 .menu.menu-left .menu-panel { right: auto; left: 0; }
+
+/* ===== هدر آکاردئون = نوار پیشرفت ===== */
+.acc-head { position: relative; overflow: hidden; }
+.acc-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    pointer-events: none;
+    transition: width .4s ease;
+}
+.acc-fill-green {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.45), rgba(16, 185, 129, 0.15));
+}
+.acc-fill-red {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.50), rgba(239, 68, 68, 0.18));
+}
+
+/* ===== آکاردئون موبایل ===== */
+.acc-arrow { display: inline-block; transition: transform .2s ease; }
+.acc-body { animation: accIn .25s ease-out; }
+@keyframes accIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+}
