@@ -17,12 +17,17 @@ async function pasteConfig() {
 
 // ===== منوی سفارشی (جایگزین select بومی) =====
 function toggleMenu(btn){
-    const panel = btn.parentElement.querySelector('.menu-panel');
+    const menu = btn.closest('.menu');
+    const panel = menu.querySelector('.menu-panel');
     const wasHidden = panel.classList.contains('hidden');
     closeAllMenus();
-    if (wasHidden) panel.classList.remove('hidden');
+    if (wasHidden) {
+        panel.classList.remove('hidden');
+        menu.classList.add('menu-open');   // ⭐ زیندکس بالا هنگام باز بودن
+    }
 }
 function closeAllMenus(){
+    document.querySelectorAll('.menu').forEach(m => m.classList.remove('menu-open'));
     document.querySelectorAll('.menu-panel').forEach(p => p.classList.add('hidden'));
 }
 document.addEventListener('click', function(e){
