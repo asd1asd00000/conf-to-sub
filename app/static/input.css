@@ -258,3 +258,40 @@ select option { background: #1c1917; color: #f5f5f4; }
     height: 0.5rem;
     overflow: hidden;
 }
+/* ===== نوار پایین موبایل: احترام به ناوبری سیستم ===== */
+.bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ===== منوی سفارشی شیشه‌ای (جایگزین select بومی مرورگر) ===== */
+.menu-btn {
+    display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: .85rem;
+    color: #f5f5f4;
+    padding: .55rem .9rem;
+    font-size: .8rem;
+    width: 100%;
+}
+.menu-btn:hover { border-color: rgba(250, 204, 21, 0.4); }
+.menu-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0; left: 0;
+    background: rgba(18, 18, 20, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(250, 204, 21, 0.25);
+    border-radius: .9rem;
+    overflow: hidden;
+    z-index: 60;
+    box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.8);
+    min-width: 9rem;
+}
+.menu-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1rem;
+    font-size: .8rem;
+    color: #d6d3d1;
+}
+.menu-item:hover { background: rgba(250, 204, 21, 0.08); color: #fde047; }
+.menu-active { background: rgba(250, 204, 21, 0.12); color: #facc15; font-weight: 700; }
