@@ -4,47 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gift Panel{% endblock %}</title>
-     <link rel="stylesheet" href="/static/style.css">
-
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body class="text-gray-800 bg-app">
+<body class="bg-dark-gold text-gray-200">
 
-    <nav class="bg-white shadow-sm sticky top-0 z-40">
+    <nav class="nav-glass sticky top-0 z-40">
         <div class="container mx-auto px-4 flex items-center justify-between h-14">
-            <div class="flex items-center gap-2 font-bold text-blue-600 text-lg">🎁 Gift Panel</div>
+            <div class="flex items-center gap-2 font-extrabold text-yellow-400 text-lg">🎁 Gift Panel</div>
             <div class="flex items-center gap-1 text-sm">
-                <a href="/admin/" class="px-3 py-2 rounded-lg {{ 'bg-blue-50 text-blue-600 font-bold' if active_page == 'dashboard' else 'text-gray-600 hover:bg-gray-50' }}">📊 داشبورد</a>
-                <a href="/admin/users" class="px-3 py-2 rounded-lg {{ 'bg-blue-50 text-blue-600 font-bold' if active_page == 'users' else 'text-gray-600 hover:bg-gray-50' }}">👥 کاربران</a>
-                <a href="/admin/settings" class="px-3 py-2 rounded-lg {{ 'bg-blue-50 text-blue-600 font-bold' if active_page == 'settings' else 'text-gray-600 hover:bg-gray-50' }}">⚙️ تنظیمات</a>
-                <a href="/admin/logout" class="px-3 py-2 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600">🚪 خروج</a>
+                <a href="/admin/" class="px-3 py-2 rounded-lg {{ 'bg-yellow-400/10 text-yellow-400 font-bold border border-yellow-400/30' if active_page == 'dashboard' else 'text-gray-400 hover:bg-white/5 hover:text-yellow-300' }}">📊 داشبورد</a>
+                <a href="/admin/users" class="px-3 py-2 rounded-lg {{ 'bg-yellow-400/10 text-yellow-400 font-bold border border-yellow-400/30' if active_page == 'users' else 'text-gray-400 hover:bg-white/5 hover:text-yellow-300' }}">👥 کاربران</a>
+                <a href="/admin/settings" class="px-3 py-2 rounded-lg {{ 'bg-yellow-400/10 text-yellow-400 font-bold border border-yellow-400/30' if active_page == 'settings' else 'text-gray-400 hover:bg-white/5 hover:text-yellow-300' }}">⚙️ تنظیمات</a>
+                <a href="/admin/logout" class="px-3 py-2 rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-400">🚪 خروج</a>
             </div>
         </div>
     </nav>
 
     {% if message %}
     <div class="fixed top-16 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
-        <div id="serverToast" class="pointer-events-auto bg-white border-r-4 border-blue-500 shadow-2xl rounded-lg p-4 toast-enter flex items-center gap-3 w-full max-w-md">
+        <div id="serverToast" class="pointer-events-auto glass-card border-r-4 border-yellow-400 rounded-xl p-4 toast-enter flex items-center gap-3 w-full max-w-md">
             <div class="text-2xl">🔔</div>
-            <p class="text-gray-700 text-sm flex-1">{{ message }}</p>
-            <button onclick="hideToast(document.getElementById('serverToast'))" class="text-gray-400 hover:text-gray-600">✕</button>
+            <p class="text-gray-200 text-sm flex-1">{{ message }}</p>
+            <button onclick="hideToast(document.getElementById('serverToast'))" class="text-gray-500 hover:text-gray-300">✕</button>
         </div>
     </div>
     <script>setTimeout(() => hideToast(document.getElementById('serverToast')), 5000);</script>
     {% endif %}
 
     <div class="fixed bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
-        <div id="jsToast" class="hidden pointer-events-auto bg-gray-900 text-white text-sm px-5 py-3 rounded-full shadow-2xl toast-enter"></div>
+        <div id="jsToast" class="hidden pointer-events-auto bg-gray-900 border border-yellow-400/30 text-gray-100 text-sm px-5 py-3 rounded-full shadow-2xl toast-enter"></div>
     </div>
 
     <!-- مودال تأیید اختصاصی پنل -->
-    <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
-            <div class="text-4xl mb-3">⚠️</div>
-            <h3 class="font-bold text-lg mb-2">مطمئن هستید؟</h3>
-            <p id="confirmMsg" class="text-sm text-gray-600 mb-5"></p>
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4">
+        <div class="glass-card rounded-2xl w-full max-w-sm p-6 text-center">
+            <div class="text-4xl mb-3">️</div>
+            <h3 class="font-bold text-lg mb-2 text-white">مطمئن هستید؟</h3>
+            <p id="confirmMsg" class="text-sm text-gray-400 mb-5"></p>
             <div class="flex gap-2">
                 <button onclick="confirmYes()" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg">بله، انجام بده</button>
-                <button onclick="closeModal('confirmModal')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg">انصراف</button>
+                <button onclick="closeModal('confirmModal')" class="flex-1 bg-white/10 hover:bg-white/15 text-gray-200 py-2 rounded-lg">انصراف</button>
             </div>
         </div>
     </div>
