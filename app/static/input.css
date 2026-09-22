@@ -168,8 +168,6 @@ main .shadow-sm:hover {
 /* کارت‌ها و پنل‌های سفید → شیشه تاریک */
 .bg-white {
     background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)) !important;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
