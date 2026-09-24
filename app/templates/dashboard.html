@@ -22,7 +22,7 @@
     <div class="bg-white p-6 rounded-xl shadow-sm">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-semibold">📦 کانفیگ‌های ذخیره‌شده <span class="text-green-600 font-bold">({{ total_count }})</span></h2>
-                        <div class="menu relative w-24 menu-left">
+            <div class="menu relative w-24 menu-left">
                 <button type="button" class="menu-btn text-xs" onclick="toggleMenu(this)">
                     <span>{{ per_page }} تایی</span><span class="text-[9px] opacity-60">▼</span>
                 </button>
@@ -60,7 +60,7 @@
             </table>
         </div>
 
-                <!-- انتخاب همه: موبایل -->
+        <!-- انتخاب همه: موبایل -->
         <div class="md:hidden flex items-center justify-between mb-2 px-1">
             <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
                 <input type="checkbox" id="selectAllConfigsMobile" onclick="toggleAllConfigs(this)" class="w-4 h-4">
@@ -152,24 +152,30 @@
         });
     }
 
+    function visibleChecks(){
+        return [...document.querySelectorAll('.configCheck')].filter(b => b.offsetParent !== null);
+    }
     function updateBulkConfigs(){
-        const boxes = document.querySelectorAll('.configCheck:checked');
+        const boxes = visibleChecks().filter(b => b.checked);
         document.getElementById('bulkCountConfigs').textContent = boxes.length;
         document.getElementById('bulkBarConfigs').classList.toggle('hidden', boxes.length === 0);
-        const sel = document.getElementById('selectAllConfigs');
-        const all = document.querySelectorAll('.configCheck');
-        if (sel) sel.checked = all.length > 0 && boxes.length === all.length;
+        const all = visibleChecks();
+        const state = all.length > 0 && boxes.length === all.length;
+        const d = document.getElementById('selectAllConfigs');
+        const m = document.getElementById('selectAllConfigsMobile');
+        if (d) d.checked = state;
+        if (m) m.checked = state;
     }
     function toggleAllConfigs(el){
-        document.querySelectorAll('.configCheck').forEach(b => b.checked = el.checked);
+        visibleChecks().forEach(b => b.checked = el.checked);
         updateBulkConfigs();
     }
     function clearSelectionConfigs(){
-        document.querySelectorAll('.configCheck').forEach(b => b.checked = false);
+        visibleChecks().forEach(b => b.checked = false);
         updateBulkConfigs();
     }
     function bulkActionConfigs(action){
-        const ids = [...document.querySelectorAll('.configCheck:checked')].map(b => b.value).join(',');
+        const ids = visibleChecks().filter(b => b.checked).map(b => b.value).join(',');
         if(!ids) return;
         const doIt = function(){
             const f = document.getElementById('bulkConfigForm');
