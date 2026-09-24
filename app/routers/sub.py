@@ -96,12 +96,9 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
     if not configs:
         return _encode_and_respond("\n".join(config_list), user)
 
+    from ..services.config_tools import apply_remark_to_raw
     for config in configs:
-        if "#" in config.raw_config:
-            base_url = config.raw_config.split("#")[0]
-            config_list.append(f"{base_url}#{config.remark}")
-        else:
-            config_list.append(config.raw_config)
+        config_list.append(apply_remark_to_raw(config.raw_config, config.remark))
 
     raw_text = "\n".join(config_list)
     return _encode_and_respond(raw_text, user)
