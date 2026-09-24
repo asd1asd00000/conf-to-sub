@@ -60,6 +60,14 @@
             </table>
         </div>
 
+                <!-- انتخاب همه: موبایل -->
+        <div class="md:hidden flex items-center justify-between mb-2 px-1">
+            <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                <input type="checkbox" id="selectAllConfigsMobile" onclick="toggleAllConfigs(this)" class="w-4 h-4">
+                انتخاب همه
+            </label>
+        </div>
+
         <!-- لیست موبایل -->
         <div class="md:hidden space-y-2">
             {% for config in configs %}
