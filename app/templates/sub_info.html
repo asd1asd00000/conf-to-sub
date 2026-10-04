@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اشتراک {{ user.username }} - Gift Panel</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-dark-gold min-h-screen flex items-center justify-center p-4">
+
+    <div class="relative w-full max-w-md">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-br"></div>
+
+        <div class="glass-card rounded-3xl p-7 md:p-9 text-center">
+            <div class="icon-chip mx-auto mb-4">🎁</div>
+
+            <h1 class="text-2xl font-extrabold text-white mb-1">{{ user.username }}</h1>
+
+            {% if status == 'active' %}
+                <span class="inline-block bg-green-500/15 text-green-400 border border-green-500/30 px-4 py-1 rounded-full text-xs font-bold mb-5">● فعال</span>
+            {% elif status == 'expired' %}
+                <span class="inline-block bg-red-500/15 text-red-400 border border-red-500/30 px-4 py-1 rounded-full text-xs font-bold mb-5">● منقضی شده</span>
+            {% else %}
+                <span class="inline-block bg-gray-500/15 text-gray-400 border border-gray-500/30 px-4 py-1 rounded-full text-xs font-bold mb-5">● غیرفعال</span>
+            {% endif %}
+
+            <div class="space-y-3 text-right text-sm mb-6">
+                {% if not expired and status == 'active' %}
+                <div class="flex items-center justify-between bg-black/25 border border-white/5 rounded-xl px-4 py-3">
+                    <span class="text-gray-400">⏳ زمان باقی‌مانده</span>
+                    <span class="text-yellow-400 font-bold">{{ days_left }} روز و {{ hours_left }} ساعت و {{ mins_left }} دقیقه</span>
+                </div>
+                {% endif %}
+
+                <div class="flex items-center justify-between bg-black/25 border border-white/5 rounded-xl px-4 py-3">
+                    <span class="text-gray-400">📅 تاریخ انقضا</span>
+                    <span class="text-gray-200 font-bold dir-ltr">{{ user.expire_date.strftime('%Y-%m-%d %H:%M') if user.expire_date else '—' }}</span>
+                </div>
+
+                <div class="bg-black/25 border border-white/5 rounded-xl px-4 py-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-400">📊 مصرف زمان</span>
+                        <span class="text-gray-200 font-bold">{{ percent }}٪</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar {{ 'progress-red' if expired or percent >= 100 else 'progress-green' }}" style="width: {{ percent }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="copyText('{{ sub_url }}')" class="btn-gold w-full py-3 text-sm">
+                📋 کپی لینک اشتراک
+            </button>
+
+            <p class="text-[11px] text-gray-500 mt-5">
+                💡 این لینک را در اپلیکیشن خود (v2box, v2rayNG, Shadowrocket) وارد کنید.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function jsToast(m){ alert(m); }
+        function copyText(txt){
+            navigator.clipboard.writeText(txt).then(()=>{
+                const b = event.target; b.textContent = '✅ کپی شد!';
+                setTimeout(()=>{ b.textContent = '📋 کپی لینک اشتراک'; }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
