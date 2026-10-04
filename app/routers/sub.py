@@ -38,9 +38,7 @@ def _encode_and_respond(configs_text: str, user=None) -> Response:
     encoded = base64.b64encode(configs_text.encode("utf-8")).decode("utf-8")
     headers = {"profile-update-interval": "12"}
     if user is not None:
-        headers["profile-title"] = base64.b64encode(
-            f"Gift Panel | {user.username}".encode("utf-8")
-        ).decode("utf-8")
+        headers["profile-title"] = user.username
     return Response(content=encoded, media_type="text/plain", headers=headers)
 
 
