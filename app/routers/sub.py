@@ -68,6 +68,50 @@ def get_subscription(user_uuid: str, db: Session = Depends(get_db)):
         print(f"⚠️ درخواست ساب برای UUID نامعتبر: {user_uuid[:8]}...")
         return _encode_and_respond(_make_fake_configs(MSG_DELETED))
 
+        # ===== تشخیص مرورگر vs کلاینت =====
+    ua = request.headers.get("user-agent", "")
+    accept = request.headers.get("accept", "")
+    is_browser = ("Mozilla" in ua or "Safari" in ua) and "text/html" in accept
+
+    if is_browser:
+        now = datetime.utcnow()
+        expired = bool(user.expire_date and user.expire_date <= now)
+
+        if user.expire_date:
+            remain = max(0, (user.expire_date - now).total_seconds())
+            days_left = int(remain // 86400)
+            hours_left = int((remain % 86400) // 3600)
+            mins_left = int((remain % 3600) // 60)
+        else:
+            days_left = hours_left = mins_left = 0
+
+        percent = 0
+        if user.expire_date and user.created_at:
+            total = (user.expire_date - user.created_at).total_seconds()
+            elapsed = (now - user.created_at).total_seconds()
+            if total > 0:
+                percent = min(100, max(0, int(elapsed / total * 100)))
+
+        if not user.is_active:
+            status = "inactive"
+        elif expired:
+            status = "expired"
+        else:
+            status = "active"
+
+        base_url = f"{request.url.scheme}://{request.url.netloc}"
+        return templates.TemplateResponse("sub_info.html", {
+            "request": request,
+            "user": user,
+            "status": status,
+            "days_left": days_left,
+            "hours_left": hours_left,
+            "mins_left": mins_left,
+            "percent": percent,
+            "expired": expired,
+            "sub_url": f"{base_url}/sub/{user.sub_uuid}",
+        })
+
     # ثبت آخرین دیده‌شدن + افزایش شمارنده آپدیت
     user.last_seen = datetime.utcnow()
     user.sub_update_count = (user.sub_update_count or 0) + 1
