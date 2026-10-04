@@ -8,6 +8,9 @@ import base64
 
 router = APIRouter()
 
+from fastapi.templating import Jinja2Templates
+templates = Jinja2Templates(directory="app/templates")
+
 # ================= پیام‌های چندخطی =================
 # خطوط مشترک پشتیبانی (می‌توانید تغییر دهید)
 # ایکون‌ها (هر وقت خواستید عوض کنید)
