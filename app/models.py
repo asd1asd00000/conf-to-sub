@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 
 def process_config_remark(original_remark: str, added_time: datetime) -> str:
-    base_name = f"gift-panel-{added_time.strftime('%Y.%m.%d-%H:%M')}"
+    base_name = f"gift-{added_time.strftime('%m.%d-%H:%M:%S')}"
     flags = re.findall(r'[\U0001F1E6-\U0001F1FF]{2}', original_remark)
     country_codes = re.findall(r'\b(US|UK|DE|FR|NL|SG|JP|KR|CA|AU|RU|TR|IN|BR|HK|TW|IT|ES|SE|CH|FI|NO|DK|PL|CZ|RO|BG|HU|AT|BE|IE|PT|GR)\b', original_remark, re.IGNORECASE)
     suffix_parts = []
