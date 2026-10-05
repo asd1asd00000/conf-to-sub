@@ -73,7 +73,7 @@
             {% for config in configs %}
                 <div class="flex items-center gap-2 p-2 bg-gray-50 rounded">
                     <input type="checkbox" class="configCheck w-4 h-4" value="{{ config.id }}" onclick="updateBulkConfigs()">
-                    <span class="flex-1 text-xs text-gray-700 font-mono dir-ltr truncate">{{ config.remark }}</span>
+                    <span class="flex-1 text-xs text-gray-700 font-mono dir-ltr truncate">{% if config.is_duplicate %}<span title="احتمالاً تکراری" class="text-orange-400">⚠️ </span>{% endif %}{{ config.remark }}</span>
                     <button type="button" onclick="deleteConfig({{ config.id }}, '{{ config.remark }}')" class="p-1 rounded bg-red-50 text-red-600">🗑️</button>
                 </div>
             {% else %}
