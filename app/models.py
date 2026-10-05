@@ -34,6 +34,8 @@ class Config(Base):
     remark = Column(String)
     protocol = Column(String)
     added_time = Column(DateTime, default=datetime.utcnow)
+    fingerprint = Column(String, index=True)
+    is_duplicate = Column(Boolean, default=False)
 
 class Setting(Base):
     """جدول تنظیمات عمومی پنل (کلید/مقدار) - قابل گسترش برای آینده"""
