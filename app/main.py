@@ -24,6 +24,16 @@ if "sub_update_count" not in _user_cols:
     with engine.begin() as _conn:
         _conn.execute(text("ALTER TABLE users ADD COLUMN sub_update_count INTEGER DEFAULT 0"))
 
+_cfg_cols = [c["name"] for c in _inspector.get_columns("configs")]
+
+if "fingerprint" not in _cfg_cols:
+    with engine.begin() as _conn:
+        _conn.execute(text("ALTER TABLE configs ADD COLUMN fingerprint VARCHAR"))
+
+if "is_duplicate" not in _cfg_cols:
+    with engine.begin() as _conn:
+        _conn.execute(text("ALTER TABLE configs ADD COLUMN is_duplicate BOOLEAN DEFAULT 0"))
+
 
 class AuthMiddleware(BaseHTTPMiddleware):
     """محافظت از همه مسیرهای /admin به جز /admin/login"""
