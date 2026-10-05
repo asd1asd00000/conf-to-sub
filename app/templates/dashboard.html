@@ -48,7 +48,7 @@
                 {% for config in configs %}
                     <tr class="hover:bg-gray-50">
                         <td class="px-2 py-2"><input type="checkbox" class="configCheck w-3 h-3" value="{{ config.id }}" onclick="updateBulkConfigs()"></td>
-                        <td class="px-2 py-2 text-gray-700 font-mono dir-ltr truncate">{{ config.remark }}</td>
+                        <td class="px-2 py-2 text-gray-700 font-mono dir-ltr truncate">{% if config.is_duplicate %}<span title="احتمالاً تکراری" class="text-orange-400">⚠️ </span>{% endif %}{{ config.remark }}</td>
                         <td class="px-2 py-2 text-center">
                             <button type="button" onclick="deleteConfig({{ config.id }}, '{{ config.remark }}')" class="p-1 rounded hover:bg-red-50 text-red-600" title="حذف">🗑️</button>
                         </td>
