@@ -57,6 +57,19 @@ app.include_router(api.router)
 
 @app.on_event("startup")
 def on_startup():
+        # پر کردن اثر انگشت کانفیگ‌های قدیمی (یک‌بار)
+    try:
+        from .services.config_tools import config_fingerprint
+        db = SessionLocal()
+        try:
+            for c in db.query(Config).filter(Config.fingerprint.is_(None)).all():
+                c.fingerprint = config_fingerprint(c.raw_config)
+            db.commit()
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"[STARTUP] خطای backfill اثر انگشت: {e}", flush=True)
+        
     # ۱) اطمینان از وجود اعتبارنامه ادمین (جلوگیری از قفل شدن)
     try:
         db = SessionLocal()
