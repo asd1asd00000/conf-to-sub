@@ -263,24 +263,51 @@ async def add_config(request: Request, raw_text: str = Form(""), db: Session = D
         print(f"🔍 بررسی {len(metas)} کانفیگ...", flush=True)
         results = await health_checker.check_configs([m["line"] for m in metas])
 
-        saved = verified = discarded = 0
+        # لیست اثر انگشت‌های موجود در دیتابیس
+        existing_fps = {c.fingerprint for c in db.query(Config.fingerprint).all() if c.fingerprint}
+        # لیست اثر انگشت‌های همین دسته (برای تشخیص تکراری درون‌دسته‌ای)
+        batch_fps = set()
+
+        saved = verified = discarded = duplicates = 0
         for meta, res in zip(metas, results):
             if res == health_checker.RESULT_DISCARD:
                 discarded += 1
                 continue
+
+            # محاسبه اثر انگشت
+            fp = config_fingerprint(meta["line"])
+            is_dup = False
+            if fp:
+                # تکراری در دیتابیس یا در همین دسته؟
+                if fp in existing_fps or fp in batch_fps:
+                    is_dup = True
+                    duplicates += 1
+                else:
+                    batch_fps.add(fp)
+
             remark = meta["base_remark"]
             if res == health_checker.RESULT_VERIFIED:
                 remark = f"{health_checker.MARK_OK} {remark}"
                 verified += 1
-            db.add(Config(raw_config=meta["line"], remark=remark, protocol=meta["protocol"], added_time=now))
+
+            db.add(Config(
+                raw_config=meta["line"],
+                remark=remark,
+                protocol=meta["protocol"],
+                added_time=now,
+                fingerprint=fp,
+                is_duplicate=is_dup,
+            ))
             saved += 1
 
         db.commit()
         msg = f"💾 {saved} کانفیگ ذخیره شد"
         if verified:
             msg += f" | {verified} مورد تأیید شد ✅"
+        if duplicates:
+            msg += f" | ⚠️ {duplicates} احتمالاً تکراری"
         if discarded:
-            msg += f" | ⚠️ {discarded} ورودی نامعتبر دور ریخته شد"
+            msg += f" | ❌ {discarded} ورودی نامعتبر دور ریخته شد"
         request.session["message"] = msg
         print(f"🏁 {msg}", flush=True)
 
