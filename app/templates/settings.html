@@ -20,9 +20,9 @@
         </form>
     </div>
 
-    <!-- بک‌آپ خودکار به جیمیل -->
+    <!-- بک‌آپ خودکار به جیمیل و تلگرام -->
     <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-emerald-500">
-        <h2 class="text-xl font-semibold mb-2 text-emerald-600">💾 بک‌آپ خودکار به جیمیل</h2>
+        <h2 class="text-xl font-semibold mb-2 text-emerald-600">💾 بک‌آپ خودکار</h2>
         <p class="text-xs text-gray-500 mb-4">زیپ رمزدار AES-256 شامل کاربران و تنظیمات (بدون کانفیگ‌ها).</p>
         {% if backup_last_sent %}
         <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4 text-xs">
@@ -34,28 +34,50 @@
                 <input type="checkbox" name="backup_enabled" {{ 'checked' if backup_enabled }} class="w-4 h-4">
                 بک‌آپ خودکار فعال باشد
             </label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                <div>
-                    <label class="block text-xs text-gray-600 mb-1">📧 جیمیل مقصد</label>
-                    <input type="email" name="backup_email_to" value="{{ backup_email_to }}" placeholder="you@gmail.com" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            
+            <!-- ایمیل -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <h3 class="font-bold text-sm mb-3">📧 ارسال به ایمیل (Gmail)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">📧 جیمیل مقصد</label>
+                        <input type="email" name="backup_email_to" value="{{ backup_email_to }}" placeholder="you@gmail.com" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">📤 جیمیل فرستنده (اختیاری)</label>
+                        <input type="email" name="backup_email_from" value="{{ backup_email_from }}" placeholder="خالی = همان مقصد" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-600 mb-1">📤 جیمیل فرستنده (اختیاری)</label>
-                    <input type="email" name="backup_email_from" value="{{ backup_email_from }}" placeholder="خالی = همان مقصد" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">🔑 App Password گوگل</label>
+                        <input type="password" name="backup_smtp_password" placeholder="••••••••••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                        <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
+                        <input type="password" name="backup_password" placeholder="••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                        <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+                    </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                <div>
-                    <label class="block text-xs text-gray-600 mb-1">🔑 App Password گوگل</label>
-                    <input type="password" name="backup_smtp_password" placeholder="••••••••••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
-                    <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-600 mb-1">🔐 پسورد فایل زیپ</label>
-                    <input type="password" name="backup_password" placeholder="••••••••" class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
-                    <p class="text-[10px] text-gray-400 mt-1">خالی = تغییر نمی‌کند</p>
+
+            <!-- تلگرام -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <h3 class="font-bold text-sm mb-3">📱 ارسال به تلگرام</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">🤖 Bot Token (از @BotFather)</label>
+                        <input type="text" name="backup_telegram_bot_token" value="{{ backup_telegram_bot_token }}" placeholder="1234567890:AAH..." class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">💬 Chat ID (از @userinfobot)</label>
+                        <input type="text" name="backup_telegram_chat_id" value="{{ backup_telegram_chat_id }}" placeholder="123456789 یا -100123..." class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none dir-ltr text-left">
+                        <p class="text-[10px] text-gray-400 mt-1">💡 برای Chat ID: به @userinfobot پیام دهید</p>
+                    </div>
                 </div>
             </div>
+
             <div class="mb-4">
                 <label class="block text-xs text-gray-600 mb-1">⏱️ فاصله زمانی (ساعت)</label>
                 <div class="flex gap-2">
