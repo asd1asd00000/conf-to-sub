@@ -497,6 +497,90 @@ async def restore_backup(request: Request, file: UploadFile = File(...), restore
     request.session["message"] = f"✅ ریستور کامل شد: {restored} کاربر و {len(settings_data)} تنظیم بازیابی شد."
     return RedirectResponse(url="/admin/settings", status_code=303)
 
+# ========== بک‌آپ خودکار (ایمیل و تلگرام) ==========
+
+@router.post("/settings/email-backup")
+def save_email_backup(
+    request: Request,
+    email_enabled: bool = Form(False),
+    email: str = Form(""),
+    smtp_server: str = Form("smtp.gmail.com"),
+    smtp_port: str = Form("587"),
+    smtp_user: str = Form(""),
+    smtp_pass: str = Form(""),
+    backup_password: str = Form(""),
+    interval_hours: int = Form(24),
+    action: str = Form("save"),
+    db: Session = Depends(get_db),
+):
+    try:
+        set_setting(db, "backup_email_enabled", "1" if email_enabled else "0")
+        set_setting(db, "backup_email_to", email.strip())
+        set_setting(db, "backup_email_smtp_server", smtp_server.strip())
+        set_setting(db, "backup_email_smtp_port", smtp_port.strip())
+        set_setting(db, "backup_email_smtp_user", smtp_user.strip())
+        if smtp_pass.strip():
+            set_setting(db, "backup_email_smtp_password", smtp_pass.strip())
+        if backup_password.strip():
+            set_setting(db, "backup_password", backup_password.strip())
+        set_setting(db, "backup_email_interval_hours", str(interval_hours))
+        db.commit()
+
+        if action == "test":
+            from ..services.backup_service import run_email_backup
+            ok, msg = run_email_backup(db)
+            request.session["message"] = msg
+        else:
+            # زمان‌بند را به‌روز کن
+            if email_enabled and interval_hours > 0:
+                backup_scheduler.reschedule_email(interval_hours)
+            else:
+                backup_scheduler.reschedule_email(0)
+            request.session["message"] = "✅ تنظیمات ایمیل ذخیره شد."
+
+    except Exception as e:
+        request.session["message"] = f"❌ خطا: {e}"
+
+    return RedirectResponse(url="/admin/settings", status_code=303)
+
+
+@router.post("/settings/telegram-backup")
+def save_telegram_backup(
+    request: Request,
+    telegram_enabled: bool = Form(False),
+    bot_token: str = Form(""),
+    chat_id: str = Form(""),
+    backup_password: str = Form(""),
+    interval_hours: int = Form(24),
+    action: str = Form("save"),
+    db: Session = Depends(get_db),
+):
+    try:
+        set_setting(db, "backup_telegram_enabled", "1" if telegram_enabled else "0")
+        set_setting(db, "backup_telegram_bot_token", bot_token.strip())
+        set_setting(db, "backup_telegram_chat_id", chat_id.strip())
+        if backup_password.strip():
+            set_setting(db, "backup_password", backup_password.strip())
+        set_setting(db, "backup_telegram_interval_hours", str(interval_hours))
+        db.commit()
+
+        if action == "test":
+            from ..services.backup_service import run_telegram_backup
+            ok, msg = run_telegram_backup(db)
+            request.session["message"] = msg
+        else:
+            # زمان‌بند را به‌روز کن
+            if telegram_enabled and interval_hours > 0:
+                backup_scheduler.reschedule_telegram(interval_hours)
+            else:
+                backup_scheduler.reschedule_telegram(0)
+            request.session["message"] = "✅ تنظیمات تلگرام ذخیره شد."
+
+    except Exception as e:
+        request.session["message"] = f"❌ خطا: {e}"
+
+    return RedirectResponse(url="/admin/settings", status_code=303)
+
 # ========== API Key Management ==========
 
 @router.post("/settings/api-key/generate")
