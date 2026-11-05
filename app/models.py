@@ -43,6 +43,15 @@ class Setting(Base):
     key = Column(String, primary_key=True, index=True)
     value = Column(String, default="")
 
+class BackupLog(Base):
+    """لاگ تاریخچه بکاپ‌ها (موفق/ناموفق)"""
+    __tablename__ = "backup_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    target = Column(String)  # 'email' یا 'telegram'
+    success = Column(Boolean, default=False)
+    details = Column(String)  # جزئیات: مقصد یا متن خطا
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
 user_config_association = Table(
     "user_configs", Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id")),
