@@ -1,5 +1,5 @@
 """
-سرویس بک‌آپ‌گیری خودکار با زیپ رمزدار و ارسال به جیمیل و/یا تلگرام.
+سرویس بک‌آپ‌گیری خودکار با زیپ رمزدار و ارسال به ایمیل و/یا تلگرام.
 """
 import io
 import json
@@ -13,7 +13,7 @@ from email.mime.text import MIMEText
 import pyzipper
 import requests
 
-from ..models import User, Setting
+from ..models import User, Setting, BackupLog
 
 
 def get_setting_val(db, key, default=""):
@@ -21,10 +21,16 @@ def get_setting_val(db, key, default=""):
     return s.value if s else default
 
 
+def set_setting_val(db, key, value):
+    s = db.query(Setting).filter(Setting.key == key).first()
+    if s:
+        s.value = str(value)
+    else:
+        db.add(Setting(key=key, value=str(value)))
+
+
 def create_backup_zip(db, password: str) -> bytes:
-    """
-    ساخت فایل زیپ AES-256 رمزدار شامل کاربران و تنظیمات.
-    """
+    """ساخت فایل زیپ AES-256 رمزدار شامل کاربران و تنظیمات."""
     users_data = []
     for u in db.query(User).all():
         users_data.append({
@@ -67,11 +73,18 @@ def create_backup_zip(db, password: str) -> bytes:
     return buf.getvalue()
 
 
-def send_backup_email(from_addr: str, to_addr: str, smtp_password: str,
-                      zip_bytes: bytes, filename: str) -> None:
-    """ارسال فایل زیپ به جیمیل با SMTP."""
+def send_backup_email(
+    smtp_server: str,
+    smtp_port: int,
+    smtp_user: str,
+    smtp_password: str,
+    to_addr: str,
+    zip_bytes: bytes,
+    filename: str,
+) -> None:
+    """ارسال فایل زیپ به ایمیل با SMTP قابل تنظیم."""
     msg = MIMEMultipart()
-    msg["From"] = from_addr
+    msg["From"] = smtp_user
     msg["To"] = to_addr
     msg["Subject"] = f"🎁 Gift Panel Backup - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 
@@ -96,16 +109,21 @@ def send_backup_email(from_addr: str, to_addr: str, smtp_password: str,
     part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
     msg.attach(part)
 
-    with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as server:
+    with smtplib.SMTP(smtp_server, smtp_port, timeout=30) as server:
         server.ehlo()
-        server.starttls()
-        server.ehlo()
-        server.login(from_addr, smtp_password.replace(" ", ""))
+        if smtp_port != 465:
+            server.starttls()
+            server.ehlo()
+        server.login(smtp_user, smtp_password.replace(" ", ""))
         server.send_message(msg)
 
 
-def send_backup_telegram(bot_token: str, chat_id: str,
-                         zip_bytes: bytes, filename: str) -> None:
+def send_backup_telegram(
+    bot_token: str,
+    chat_id: str,
+    zip_bytes: bytes,
+    filename: str,
+) -> None:
     """ارسال فایل زیپ به تلگرام."""
     url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
     files = {"document": (filename, io.BytesIO(zip_bytes), "application/zip")}
@@ -122,66 +140,91 @@ def send_backup_telegram(bot_token: str, chat_id: str,
     resp.raise_for_status()
 
 
-def run_backup_job(db) -> tuple[bool, str]:
-    """
-    اجرای یک job بک‌آپ کامل. برمی‌گرداند (success, message).
-    """
-    try:
-        enabled = get_setting_val(db, "backup_enabled", "0") == "1"
-        if not enabled:
-            return False, "بک‌آپ غیرفعال است"
+def log_backup(db, target: str, success: bool, details: str):
+    """ثبت لاگ بکاپ (حفظ فقط ۱۰ تای آخر)."""
+    db.add(BackupLog(target=target, success=success, details=details))
+    db.commit()
+    # حذف لاگ‌های قدیمی (حفظ ۱۰ تای آخر)
+    logs = db.query(BackupLog).order_by(BackupLog.created_at.desc()).offset(10).all()
+    for log in logs:
+        db.delete(log)
+    db.commit()
 
+
+def run_email_backup(db) -> tuple[bool, str]:
+    """اجرای بکاپ ایمیل. برمی‌گرداند (success, message)."""
+    try:
+        smtp_server = get_setting_val(db, "backup_email_smtp_server", "smtp.gmail.com").strip()
+        smtp_port = int(get_setting_val(db, "backup_email_smtp_port", "587") or "587")
+        smtp_user = get_setting_val(db, "backup_email_smtp_user", "").strip()
+        smtp_password = get_setting_val(db, "backup_email_smtp_password", "").strip()
+        to_addr = get_setting_val(db, "backup_email_to", "").strip()
         password = get_setting_val(db, "backup_password", "gift123").strip()
+
+        if not to_addr or not smtp_user or not smtp_password:
+            msg = "تنظیمات ایمیل ناقص است"
+            log_backup(db, "email", False, msg)
+            return False, f"❌ {msg}"
+
         zip_bytes = create_backup_zip(db, password)
         filename = f"gift-panel-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.zip"
+        send_backup_email(smtp_server, smtp_port, smtp_user, smtp_password, to_addr, zip_bytes, filename)
+        
+        msg = f"ارسال به {to_addr}"
+        log_backup(db, "email", True, msg)
+        return True, f"✅ بکاپ ایمیل: {msg}"
 
-        sent_to = []
-        errors = []
+    except smtplib.SMTPAuthenticationError:
+        msg = "App Password اشتباه"
+        log_backup(db, "email", False, msg)
+        return False, f"❌ ایمیل: {msg}"
+    except Exception as e:
+        msg = f"{type(e).__name__}: {e}"
+        log_backup(db, "email", False, msg)
+        return False, f"❌ ایمیل: {msg}"
 
-        # --- ایمیل ---
-        to_addr = get_setting_val(db, "backup_email_to", "").strip()
-        from_addr = get_setting_val(db, "backup_email_from", "").strip() or to_addr
-        smtp_pass = get_setting_val(db, "backup_smtp_password", "").strip()
 
-        if to_addr and smtp_pass:
-            try:
-                send_backup_email(from_addr, to_addr, smtp_pass, zip_bytes, filename)
-                sent_to.append(f"ایمیل ({to_addr})")
-            except smtplib.SMTPAuthenticationError:
-                errors.append("ایمیل: App Password اشتباه")
-            except Exception as e:
-                errors.append(f"ایمیل: {e}")
+def run_telegram_backup(db) -> tuple[bool, str]:
+    """اجرای بکاپ تلگرام. برمی‌گرداند (success, message)."""
+    try:
+        bot_token = get_setting_val(db, "backup_telegram_bot_token", "").strip()
+        chat_id = get_setting_val(db, "backup_telegram_chat_id", "").strip()
+        password = get_setting_val(db, "backup_password", "gift123").strip()
 
-        # --- تلگرام ---
-        telegram_bot_token = get_setting_val(db, "backup_telegram_bot_token", "").strip()
-        telegram_chat_id = get_setting_val(db, "backup_telegram_chat_id", "").strip()
+        if not bot_token or not chat_id:
+            msg = "تنظیمات تلگرام ناقص است"
+            log_backup(db, "telegram", False, msg)
+            return False, f"❌ {msg}"
 
-        if telegram_bot_token and telegram_chat_id:
-            try:
-                send_backup_telegram(telegram_bot_token, telegram_chat_id, zip_bytes, filename)
-                sent_to.append("تلگرام")
-            except Exception as e:
-                errors.append(f"تلگرام: {e}")
-
-        # ثبت زمان آخرین ارسال (اگر حداقل یکی موفق بود)
-        if sent_to:
-            s = db.query(Setting).filter(Setting.key == "backup_last_sent").first()
-            now_iso = datetime.utcnow().isoformat()
-            if s:
-                s.value = now_iso
-            else:
-                db.add(Setting(key="backup_last_sent", value=now_iso))
-            db.commit()
-
-            msg = f"✅ بک‌آپ ارسال شد به: {', '.join(sent_to)}"
-            if errors:
-                msg += f" | خطاها: {'; '.join(errors)}"
-            return True, msg
-        else:
-            if errors:
-                return False, f"❌ هیچ مقصدی موفق نبود: {'; '.join(errors)}"
-            else:
-                return False, "⚠️ هیچ مقصدی تنظیم نشده (ایمیل یا تلگرام)"
+        zip_bytes = create_backup_zip(db, password)
+        filename = f"gift-panel-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.zip"
+        send_backup_telegram(bot_token, chat_id, zip_bytes, filename)
+        
+        msg = f"ارسال به {chat_id}"
+        log_backup(db, "telegram", True, msg)
+        return True, f"✅ بکاپ تلگرام: {msg}"
 
     except Exception as e:
-        return False, f"❌ خطا: {type(e).__name__}: {e}"
+        msg = f"{type(e).__name__}: {e}"
+        log_backup(db, "telegram", False, msg)
+        return False, f"❌ تلگرام: {msg}"
+
+
+def run_backup_job(db) -> tuple[bool, str]:
+    """اجرای بکاپ به همه مقاصد فعال (برای سازگاری با scheduler قدیمی)."""
+    results = []
+    
+    email_enabled = get_setting_val(db, "backup_email_enabled", "0") == "1"
+    if email_enabled:
+        ok, msg = run_email_backup(db)
+        results.append(msg)
+
+    telegram_enabled = get_setting_val(db, "backup_telegram_enabled", "0") == "1"
+    if telegram_enabled:
+        ok, msg = run_telegram_backup(db)
+        results.append(msg)
+
+    if results:
+        return True, " | ".join(results)
+    else:
+        return False, "هیچ مقصدی فعال نیست"
