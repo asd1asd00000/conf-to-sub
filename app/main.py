@@ -86,22 +86,24 @@ def on_startup():
     except Exception as e:
         print(f"[STARTUP] خطای ساخت اعتبارنامه: {e}", flush=True)
 
-    # ۲) بارگذاری زمان‌بند بک‌آپ
+    # ۲) بارگذاری زمان‌بندهای بک‌آپ (ایمیل و تلگرام جدا)
     try:
         db = SessionLocal()
         try:
-            s = db.query(Setting).filter(Setting.key == "backup_enabled").first()
-            enabled = s and s.value == "1"
-            h = db.query(Setting).filter(Setting.key == "backup_hours").first()
-            hours = int(h.value) if h and h.value.isdigit() else 0
-            l = db.query(Setting).filter(Setting.key == "backup_last_sent").first()
-            last_sent = l.value if l else ""
             backup_scheduler.ensure_started()
-            if enabled and hours > 0:
-                backup_scheduler.reschedule(hours, last_sent)
-                backup_scheduler.catchup_if_overdue(hours, last_sent)
-            else:
-                print("[STARTUP] زمان‌بند بک‌آپ شروع شد (غیرفعال)", flush=True)
+
+            email_on = get_setting(db, "backup_email_enabled", "0") == "1"
+            email_hours = int(get_setting(db, "backup_email_interval_hours", "0") or 0)
+            if email_on and email_hours > 0:
+                backup_scheduler.reschedule_email(email_hours)
+
+            tg_on = get_setting(db, "backup_telegram_enabled", "0") == "1"
+            tg_hours = int(get_setting(db, "backup_telegram_interval_hours", "0") or 0)
+            if tg_on and tg_hours > 0:
+                backup_scheduler.reschedule_telegram(tg_hours)
+
+            if not email_on and not tg_on:
+                print("[STARTUP] زمان‌بند بک‌آپ شروع شد (هر دو مقصد غیرفعال)", flush=True)
         finally:
             db.close()
     except Exception as e:
