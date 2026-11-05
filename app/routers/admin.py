@@ -320,35 +320,42 @@ async def add_config(request: Request, raw_text: str = Form(""), db: Session = D
 
 @router.get("/settings")
 def settings_page(request: Request, db: Session = Depends(get_db)):
+    from ..models import BackupLog
     message = request.session.pop("message", None)
-    
-    # تنظیمات اطلاع‌رسانی
-    broadcast_enabled = get_setting(db, "broadcast_enabled", "0") == "1"
-    broadcast_text = get_setting(db, "broadcast_text", "")
-    
-    # تنظیمات بک‌آپ
-    backup_enabled = get_setting(db, "backup_enabled", "0") == "1"
-    try:
-        backup_hours = int(get_setting(db, "backup_hours", "0") or "0")
-    except ValueError:
-        backup_hours = 0
-    backup_email_to = get_setting(db, "backup_email_to", "")
-    backup_email_from = get_setting(db, "backup_email_from", "")
-    backup_last_sent = get_setting(db, "backup_last_sent", "")
-    api_key = get_api_key(db)
-    
+    base_url = f"{request.url.scheme}://{request.url.netloc}"
+
+    # ۳ لاگ آخر بکاپ (موفق/ناموفق)
+    backup_logs = db.query(BackupLog).order_by(BackupLog.created_at.desc()).limit(3).all()
+
+    # متن اطلاع‌رسانی (هر کلیدی که ذخیره شده باشد)
+    broadcast_text = get_setting(db, "broadcast_text", "") or get_setting(db, "sub_notice", "")
+
     return templates.TemplateResponse("settings.html", {
         "request": request,
         "message": message,
         "active_page": "settings",
-        "broadcast_enabled": broadcast_enabled,
+        "base_url": base_url,
+        # اطلاع‌رسانی
+        "broadcast_enabled": get_setting(db, "broadcast_enabled", "0") == "1",
         "broadcast_text": broadcast_text,
-        "backup_enabled": backup_enabled,
-        "backup_hours": backup_hours,
-        "backup_email_to": backup_email_to,
-        "backup_email_from": backup_email_from,
-        "backup_last_sent": backup_last_sent,
-        "api_key": api_key,
+        # بک‌آپ ایمیل
+        "backup_email_enabled": get_setting(db, "backup_email_enabled", "0") == "1",
+        "backup_email_to": get_setting(db, "backup_email_to", ""),
+        "backup_email_smtp_server": get_setting(db, "backup_email_smtp_server", "smtp.gmail.com"),
+        "backup_email_smtp_port": get_setting(db, "backup_email_smtp_port", "587"),
+        "backup_email_smtp_user": get_setting(db, "backup_email_smtp_user", ""),
+        "backup_email_interval_hours": get_setting(db, "backup_email_interval_hours", "24"),
+        # بک‌آپ تلگرام
+        "backup_telegram_enabled": get_setting(db, "backup_telegram_enabled", "0") == "1",
+        "backup_telegram_bot_token": get_setting(db, "backup_telegram_bot_token", ""),
+        "backup_telegram_chat_id": get_setting(db, "backup_telegram_chat_id", ""),
+        "backup_telegram_interval_hours": get_setting(db, "backup_telegram_interval_hours", "24"),
+        # رمز مشترک زیپ
+        "backup_password": get_setting(db, "backup_password", "gift123"),
+        # تاریخچه
+        "backup_logs": backup_logs,
+        # API Key
+        "api_key": get_api_key(db),
     })
 
 @router.post("/settings/broadcast")
