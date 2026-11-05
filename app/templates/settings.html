@@ -1,23 +1,61 @@
 {% extends "base.html" %}
 {% block title %}تنظیمات - Gift Panel{% endblock %}
 {% block content %}
+
+<style>
+/* ===== آکاردئون ===== */
+.acc-header { cursor: pointer; }
+.acc-arrow { transition: transform .25s ease; font-size: .8rem; }
+
+/* ===== Toggle Switch طلایی ===== */
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 27px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.20);
+    border-radius: 27px; transition: .3s;
+}
+.toggle-slider:before {
+    position: absolute; content: ""; height: 19px; width: 19px;
+    right: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s;
+}
+.toggle-switch input:checked + .toggle-slider { background: linear-gradient(180deg,#fde047,#eab308); border-color: transparent; }
+.toggle-switch input:checked + .toggle-slider:before { transform: translateX(-23px); }
+
+/* ===== بخش غیرفعال: بلور + مُهر ===== */
+.backup-section-disabled .backup-form-wrap { position: relative; }
+.backup-section-disabled .backup-form-wrap::after {
+    content: "⏸️ غیرفعال";
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) rotate(-12deg);
+    background: rgba(239,68,68,0.95); color: #fff;
+    padding: 8px 26px; border-radius: 10px;
+    font-size: 14px; font-weight: 800;
+    box-shadow: 0 6px 18px rgba(239,68,68,0.45);
+    z-index: 5; pointer-events: none;
+}
+.backup-section-disabled .backup-form-wrap form {
+    opacity: .30; filter: blur(3px) grayscale(100%);
+    pointer-events: none; user-select: none;
+}
+</style>
+
 <h1 class="text-2xl font-bold mb-6">⚙️ تنظیمات</h1>
 
-<div class="space-y-4" id="accordionContainer">
+<div class="space-y-4">
 
-    <!-- ============================================== -->
-    <!-- بخش ۱: اطلاع‌رسانی -->
-    <!-- ============================================== -->
-    <div class="setting-accordion-item glass-card rounded-2xl shadow-sm overflow-hidden">
-        <button class="accordion-header w-full flex items-center justify-between p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
-            <div class="flex items-center gap-3">
+    <!-- ═══════════ ۱) اطلاع‌رسانی ═══════════ -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <button type="button" class="acc-header w-full flex items-center justify-between gap-3 p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
+            <div class="flex items-center gap-3 text-right">
                 <span class="text-2xl">📢</span>
-                <div class="text-right">
-                    <h2 class="text-lg font-bold">اطلاع‌رسانی به کاربران</h2>
-                    <p class="text-xs text-gray-400">پیام شما در بالای لیست سابسکریپشن همه کاربران فعال نمایش داده می‌شود.</p>
-                </div>
+                <span>
+                    <span class="block text-base font-bold">اطلاع‌رسانی به کاربران</span>
+                    <span class="block text-xs text-gray-400 mt-1">پیام شما در بالای لیست سابسکریپشن همه کاربران فعال نمایش داده می‌شود.</span>
+                </span>
             </div>
-            <span class="accordion-arrow text-gray-400 text-xl transition-transform">▼</span>
+            <span class="acc-arrow text-gray-500">▼</span>
         </button>
         <div class="accordion-body hidden border-t border-white/5 p-5">
             <form method="post" action="/admin/settings/broadcast">
@@ -29,8 +67,6 @@
                 <p class="text-xs text-gray-400 mb-3">💡 هر خط = یک ردیف در کلاینت کاربر.</p>
                 <button class="btn-gold w-full py-2.5 text-sm">ذخیره اطلاع‌رسانی</button>
             </form>
-
-            <!-- پیش‌نمایش -->
             <div class="mt-5 bg-black/20 border border-white/5 rounded-xl p-4">
                 <h3 class="text-sm font-bold mb-3">👀 پیش‌نمایش در کلاینت کاربر</h3>
                 <div class="space-y-2">
@@ -48,157 +84,146 @@
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- بخش ۲: بک‌آپ خودکار -->
-    <!-- ============================================== -->
-    <div class="setting-accordion-item glass-card rounded-2xl shadow-sm overflow-hidden">
-        <button class="accordion-header w-full flex items-center justify-between p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
-            <div class="flex items-center gap-3">
+    <!-- ═══════════ ۲) بک‌آپ خودکار (پیش‌فرض باز) ═══════════ -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <button type="button" class="acc-header w-full flex items-center justify-between gap-3 p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
+            <div class="flex items-center gap-3 text-right">
                 <span class="text-2xl">💾</span>
-                <div class="text-right">
-                    <h2 class="text-lg font-bold">بک‌آپ خودکار</h2>
-                    <p class="text-xs text-gray-400">زیپ رمزدار AES-256 شامل کاربران و تنظیمات.</p>
-                </div>
+                <span>
+                    <span class="block text-base font-bold">بک‌آپ خودکار</span>
+                    <span class="block text-xs text-gray-400 mt-1">زیپ رمزدار AES-256 شامل کاربران و تنظیمات + ارسال به ایمیل و تلگرام.</span>
+                </span>
             </div>
-            <span class="accordion-arrow text-gray-400 text-xl transition-transform">▼</span>
+            <span class="acc-arrow text-gray-500" style="transform: rotate(180deg)">▼</span>
         </button>
-        <div class="accordion-body hidden border-t border-white/5 p-5 space-y-6">
-            
+        <div class="accordion-body border-t border-white/5 p-5 space-y-6">
+
             <!-- رمز مشترک زیپ -->
             <div class="bg-black/20 border border-white/5 rounded-xl p-4">
-                <h3 class="text-sm font-bold mb-3">🔐 رمز فایل زیپ (مشترک)</h3>
-                <p class="text-xs text-gray-400 mb-3">این رمز برای هر دو مقصد (ایمیل و تلگرام) استفاده می‌شود.</p>
-                <form method="post" action="/admin/settings/email-backup" class="flex gap-2">
-                    <input type="hidden" name="email_enabled" value="{{ '1' if backup_email_enabled else '0' }}">
-                    <input type="hidden" name="email" value="{{ backup_email_to }}">
-                    <input type="hidden" name="smtp_server" value="{{ backup_email_smtp_server }}">
-                    <input type="hidden" name="smtp_port" value="{{ backup_email_smtp_port }}">
-                    <input type="hidden" name="smtp_user" value="{{ backup_email_smtp_user }}">
-                    <input type="hidden" name="smtp_pass" value="">
-                    <input type="hidden" name="interval_hours" value="{{ backup_email_interval_hours }}">
-                    <input type="hidden" name="action" value="save">
+                <h3 class="text-sm font-bold mb-2">🔐 رمز فایل زیپ (مشترک بین همه مقاصد)</h3>
+                <form method="post" action="/admin/settings/backup/password" class="flex gap-2">
                     <input type="text" name="backup_password" value="{{ backup_password }}" placeholder="gift123" class="input-gold flex-1 p-2.5 text-sm font-mono">
-                    <button type="submit" class="btn-gold px-5 py-2.5 text-sm">💾</button>
+                    <button type="submit" class="btn-gold px-5 py-2.5 text-sm">💾 ذخیره رمز</button>
                 </form>
             </div>
 
-            <!-- 🎯 بکاپ به ایمیل با toggle -->
-            <div class="backup-section {{ 'backup-section-disabled' if not backup_email_enabled }}" id="emailBackupSection">
+            <!-- 📧 ایمیل -->
+            <div class="backup-section {{ '' if backup_email_enabled else 'backup-section-disabled' }}" id="emailBackupSection">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <span class="text-xl">📧</span>
                         <div>
                             <h3 class="text-sm font-bold text-yellow-400">بکاپ خودکار به ایمیل</h3>
-                            <p class="text-[11px] text-gray-400">برای Gmail حتماً از App Password به جای رمز اصلی استفاده کنید.</p>
+                            <p class="text-[11px] text-gray-400">برای Gmail حتماً از App Password استفاده کنید. هر SMTP دیگری (مثل Resend) هم کار می‌کند.</p>
                         </div>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="emailBackupToggle" {{ 'checked' if backup_email_enabled }} onchange="toggleEmailBackup()">
+                        <input type="checkbox" {{ 'checked' if backup_email_enabled }} onchange="setBackupToggle('email', this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <form action="/admin/settings/email-backup" method="POST" class="bg-black/20 border border-yellow-400/20 rounded-xl p-5 shadow-sm space-y-4" id="emailBackupForm">
-                    <input type="hidden" name="email_enabled" id="emailEnabledInput" value="{{ '1' if backup_email_enabled else '0' }}">
-                    <input type="hidden" name="backup_password" value="{{ backup_password }}">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-yellow-400 mb-1">ایمیل مقصد (گیرنده)</label>
-                            <input type="email" name="email" value="{{ backup_email_to }}" placeholder="example@gmail.com" class="email-field input-gold w-full p-2.5 text-sm">
+                <div class="backup-form-wrap">
+                    <form action="/admin/settings/email-backup" method="POST" class="bg-black/20 border border-yellow-400/20 rounded-xl p-5 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">ایمیل مقصد (گیرنده)</label>
+                                <input type="email" name="email" value="{{ backup_email_to }}" placeholder="example@gmail.com" class="input-gold w-full p-2.5 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Server</label>
+                                <input type="text" name="smtp_server" value="{{ backup_email_smtp_server }}" placeholder="smtp.gmail.com" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Port</label>
+                                <input type="number" name="smtp_port" value="{{ backup_email_smtp_port }}" placeholder="587" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP User (فرستنده)</label>
+                                <input type="text" name="smtp_user" value="{{ backup_email_smtp_user }}" placeholder="your-email@gmail.com" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Password</label>
+                                <input type="password" name="smtp_pass" placeholder="خالی = تغییر نمی‌کند" class="input-gold w-full p-2.5 text-sm font-mono dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">🕐 بازه ارسال</label>
+                                <select name="interval_hours" class="input-gold w-full p-2.5 text-sm">
+                                    <option value="1" {{ 'selected' if backup_email_interval_hours == '1' }}>هر ۱ ساعت</option>
+                                    <option value="3" {{ 'selected' if backup_email_interval_hours == '3' }}>هر ۳ ساعت</option>
+                                    <option value="6" {{ 'selected' if backup_email_interval_hours == '6' }}>هر ۶ ساعت</option>
+                                    <option value="12" {{ 'selected' if backup_email_interval_hours == '12' }}>هر ۱۲ ساعت</option>
+                                    <option value="24" {{ 'selected' if backup_email_interval_hours == '24' }}>هر ۲۴ ساعت (روزانه)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Server</label>
-                            <input type="text" name="smtp_server" value="{{ backup_email_smtp_server }}" placeholder="smtp.gmail.com" class="email-field input-gold w-full p-2.5 text-sm">
+                        <div class="flex gap-3 pt-2">
+                            <button type="submit" name="action" value="save" class="btn-gold flex-1 py-2.5 text-sm">💾 ذخیره تنظیمات ایمیل</button>
+                            <button type="submit" name="action" value="test" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm">📧 ارسال تست</button>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Port</label>
-                            <input type="number" name="smtp_port" value="{{ backup_email_smtp_port }}" placeholder="587" class="email-field input-gold w-full p-2.5 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP User (فرستنده)</label>
-                            <input type="text" name="smtp_user" value="{{ backup_email_smtp_user }}" placeholder="your-email@gmail.com" class="email-field input-gold w-full p-2.5 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Password</label>
-                            <input type="password" name="smtp_pass" placeholder="App Password" class="email-field input-gold w-full p-2.5 text-sm font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-yellow-400 mb-1">🕐 بازه ارسال</label>
-                            <select name="interval_hours" class="email-field input-gold w-full p-2.5 text-sm">
-                                <option value="1" {{ 'selected' if backup_email_interval_hours == '1' }}>هر 1 ساعت</option>
-                                <option value="3" {{ 'selected' if backup_email_interval_hours == '3' }}>هر 3 ساعت</option>
-                                <option value="6" {{ 'selected' if backup_email_interval_hours == '6' }}>هر 6 ساعت</option>
-                                <option value="12" {{ 'selected' if backup_email_interval_hours == '12' }}>هر 12 ساعت</option>
-                                <option value="24" {{ 'selected' if backup_email_interval_hours == '24' }}>هر 24 ساعت (روزانه)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 pt-2">
-                        <button type="submit" name="action" value="save" class="email-field btn-gold flex-1 py-2.5 text-sm">💾 ذخیره تنظیمات ایمیل</button>
-                        <button type="submit" name="action" value="test" class="email-field bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 rounded-lg transition text-sm shadow-md">📧 ارسال تست</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
 
-            <!-- 🎯 بکاپ به تلگرام با toggle -->
-            <div class="backup-section {{ 'backup-section-disabled' if not backup_telegram_enabled }}" id="telegramBackupSection">
+            <!-- ✈️ تلگرام -->
+            <div class="backup-section {{ '' if backup_telegram_enabled else 'backup-section-disabled' }}" id="telegramBackupSection">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <span class="text-xl">✈️</span>
                         <div>
                             <h3 class="text-sm font-bold text-blue-400">بکاپ خودکار به تلگرام</h3>
-                            <p class="text-[11px] text-gray-400">فایل بکاپ را به صورت مستقیم در بات یا کانال دریافت کنید.</p>
+                            <p class="text-[11px] text-gray-400">فایل بکاپ را مستقیم در چت بات یا کانال دریافت کنید.</p>
                         </div>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="telegramBackupToggle" {{ 'checked' if backup_telegram_enabled }} onchange="toggleTelegramBackup()">
+                        <input type="checkbox" {{ 'checked' if backup_telegram_enabled }} onchange="setBackupToggle('telegram', this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <form action="/admin/settings/telegram-backup" method="POST" class="bg-black/20 border border-blue-400/20 rounded-xl p-5 shadow-sm space-y-4" id="telegramBackupForm">
-                    <input type="hidden" name="telegram_enabled" id="telegramEnabledInput" value="{{ '1' if backup_telegram_enabled else '0' }}">
-                    <input type="hidden" name="backup_password" value="{{ backup_password }}">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-blue-400 mb-1">Bot Token (توکن ربات)</label>
-                            <input type="text" name="bot_token" value="{{ backup_telegram_bot_token }}" placeholder="123456:ABC-DEF1234ghIkl-..." class="telegram-field input-gold w-full p-2.5 text-sm font-mono">
+                <div class="backup-form-wrap">
+                    <form action="/admin/settings/telegram-backup" method="POST" class="bg-black/20 border border-blue-400/20 rounded-xl p-5 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-blue-400 mb-1">Bot Token (توکن ربات)</label>
+                                <input type="text" name="bot_token" value="{{ backup_telegram_bot_token }}" placeholder="123456:ABC-DEF..." class="input-gold w-full p-2.5 text-sm font-mono dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-blue-400 mb-1">Chat ID (کاربر/کانال)</label>
+                                <input type="text" name="chat_id" value="{{ backup_telegram_chat_id }}" placeholder="123456789 یا -100123..." class="input-gold w-full p-2.5 text-sm font-mono dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-blue-400 mb-1">🕐 بازه ارسال</label>
+                                <select name="interval_hours" class="input-gold w-full p-2.5 text-sm">
+                                    <option value="1" {{ 'selected' if backup_telegram_interval_hours == '1' }}>هر ۱ ساعت</option>
+                                    <option value="3" {{ 'selected' if backup_telegram_interval_hours == '3' }}>هر ۳ ساعت</option>
+                                    <option value="6" {{ 'selected' if backup_telegram_interval_hours == '6' }}>هر ۶ ساعت</option>
+                                    <option value="12" {{ 'selected' if backup_telegram_interval_hours == '12' }}>هر ۱۲ ساعت</option>
+                                    <option value="24" {{ 'selected' if backup_telegram_interval_hours == '24' }}>هر ۲۴ ساعت (روزانه)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-blue-400 mb-1">Chat ID (آیدی کاربر/کانال)</label>
-                            <input type="text" name="chat_id" value="{{ backup_telegram_chat_id }}" placeholder="123456789 یا @mychannel" class="telegram-field input-gold w-full p-2.5 text-sm font-mono">
+                        <div class="flex gap-3 pt-2">
+                            <button type="submit" name="action" value="save" class="btn-gold flex-1 py-2.5 text-sm">💾 ذخیره تنظیمات تلگرام</button>
+                            <button type="submit" name="action" value="test" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-6 py-2.5 rounded-lg text-sm">✈️ ارسال تست</button>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-blue-400 mb-1">🕐 بازه ارسال</label>
-                            <select name="interval_hours" class="telegram-field input-gold w-full p-2.5 text-sm">
-                                <option value="1" {{ 'selected' if backup_telegram_interval_hours == '1' }}>هر 1 ساعت</option>
-                                <option value="3" {{ 'selected' if backup_telegram_interval_hours == '3' }}>هر 3 ساعت</option>
-                                <option value="6" {{ 'selected' if backup_telegram_interval_hours == '6' }}>هر 6 ساعت</option>
-                                <option value="12" {{ 'selected' if backup_telegram_interval_hours == '12' }}>هر 12 ساعت</option>
-                                <option value="24" {{ 'selected' if backup_telegram_interval_hours == '24' }}>هر 24 ساعت (روزانه)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex gap-3 pt-2">
-                        <button type="submit" name="action" value="save" class="telegram-field btn-gold flex-1 py-2.5 text-sm">💾 ذخیره تنظیمات تلگرام</button>
-                        <button type="submit" name="action" value="test" class="telegram-field bg-sky-600 hover:bg-sky-700 text-white font-bold px-6 py-2.5 rounded-lg transition text-sm shadow-md">✈️ ارسال تست</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
 
-            <!-- تاریخچه ۳ بکاپ آخر -->
+            <!-- 🕒 تاریخچه -->
             <div class="bg-black/20 border border-white/5 rounded-xl p-4">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-sm font-bold flex items-center gap-2"><span>🕒</span> تاریخچه ۳ بکاپ ارسال‌شده اخیر</h3>
-                    <button onclick="window.location.reload()" class="text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5 shadow-sm transition">🔄 رفرش</button>
+                    <h3 class="text-sm font-bold flex items-center gap-2"><span>🕒</span> تاریخچه ۳ بکاپ اخیر</h3>
+                    <button type="button" onclick="window.location.reload()" class="text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 rounded-md px-3 py-1.5">🔄 رفرش</button>
                 </div>
                 <div class="space-y-3">
                     {% if backup_logs %}
                         {% for log in backup_logs %}
-                        <div class="bg-black/30 border-l-4 {{ 'border-green-500' if log.success else 'border-red-500' }} rounded-lg p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+                        <div class="bg-black/30 border-l-4 {{ 'border-green-500' if log.success else 'border-red-500' }} rounded-lg p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
                             <div>
                                 <div class="font-bold text-sm mb-1 {{ 'text-green-400' if log.success else 'text-red-400' }}">
                                     {{ '✅ موفقیت‌آمیز' if log.success else '❌ خطا در ارسال' }}
                                 </div>
-                                <div class="text-xs text-gray-300">{{ log.target | upper }}: {{ log.details }}</div>
+                                <div class="text-xs text-gray-300">{{ '📧 ایمیل' if log.target == 'email' else '✈️ تلگرام' }} — {{ log.details }}</div>
                             </div>
                             <div class="text-[11px] text-gray-400 font-mono bg-black/40 px-2.5 py-1.5 rounded-md whitespace-nowrap text-center border border-white/10" dir="ltr">
                                 {{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
@@ -210,31 +235,29 @@
                     {% endif %}
                 </div>
             </div>
+
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- بخش ۳: بک‌آپ محلی و ریستور -->
-    <!-- ============================================== -->
-    <div class="setting-accordion-item glass-card rounded-2xl shadow-sm overflow-hidden">
-        <button class="accordion-header w-full flex items-center justify-between p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
-            <div class="flex items-center gap-3">
+    <!-- ═══════════ ۳) بک‌آپ محلی و ریستور ═══════════ -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <button type="button" class="acc-header w-full flex items-center justify-between gap-3 p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
+            <div class="flex items-center gap-3 text-right">
                 <span class="text-2xl">📥</span>
-                <div class="text-right">
-                    <h2 class="text-lg font-bold">بک‌آپ محلی و ریستور</h2>
-                    <p class="text-xs text-gray-400">فایل بک‌آپ رمزدار را مستقیم دانلود کنید یا از یک بک‌آپ قبلی بازیابی کنید.</p>
-                </div>
+                <span>
+                    <span class="block text-base font-bold">بک‌آپ محلی و ریستور</span>
+                    <span class="block text-xs text-gray-400 mt-1">دانلود مستقیم زیپ رمزدار یا بازیابی از یک بک‌آپ قبلی.</span>
+                </span>
             </div>
-            <span class="accordion-arrow text-gray-400 text-xl transition-transform">▼</span>
+            <span class="acc-arrow text-gray-500">▼</span>
         </button>
         <div class="accordion-body hidden border-t border-white/5 p-5">
             <a href="/admin/settings/backup/download" class="block w-full text-center btn-gold py-2.5 text-sm mb-4">💾 دانلود بک‌آپ محلی (زیپ رمزدار)</a>
-
-            <form method="post" action="/admin/settings/backup/restore" enctype="multipart/form-data" id="restoreForm">
+            <form method="post" action="/admin/settings/backup/restore" enctype="multipart/form-data">
                 <label class="block text-xs font-bold text-gray-300 mb-1">📦 فایل بک‌آپ (zip)</label>
                 <input type="file" name="file" accept=".zip" required class="input-gold w-full p-2.5 mb-3 text-sm">
                 <label class="block text-xs font-bold text-gray-300 mb-1">🔐 پسورد فایل زیپ</label>
-                <input type="password" name="restore_password" placeholder="پسوردی که هنگام ساخت بک‌آپ gesetzt کردید" class="input-gold w-full p-2.5 mb-3 text-sm">
+                <input type="password" name="restore_password" placeholder="رمزی که هنگام ساخت بک‌آپ گذاشتید" class="input-gold w-full p-2.5 mb-3 text-sm dir-ltr text-left">
                 <label class="flex items-center gap-2 text-sm mb-4">
                     <input type="checkbox" name="replace_users" class="w-4 h-4">
                     کاربران فعلی قبل از ریستور حذف شوند (جایگزینی کامل)
@@ -244,46 +267,33 @@
         </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- بخش ۴: API Key -->
-    <!-- ============================================== -->
-    <div class="setting-accordion-item glass-card rounded-2xl shadow-sm overflow-hidden">
-        <button class="accordion-header w-full flex items-center justify-between p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
-            <div class="flex items-center gap-3">
+    <!-- ═══════════ ۴) API Key ═══════════ -->
+    <div class="glass-card rounded-2xl overflow-hidden">
+        <button type="button" class="acc-header w-full flex items-center justify-between gap-3 p-5 hover:bg-white/5 transition" onclick="toggleAccordion(this)">
+            <div class="flex items-center gap-3 text-right">
                 <span class="text-2xl">🔑</span>
-                <div class="text-right">
-                    <h2 class="text-lg font-bold">API Key (برای اپ‌های خارجی)</h2>
-                    <p class="text-xs text-gray-400">اپ‌های خارجی با این کلید می‌توانند از طریق /api/* به پنل متصل شوند.</p>
-                </div>
+                <span>
+                    <span class="block text-base font-bold">API Key (برای اپ‌های خارجی)</span>
+                    <span class="block text-xs text-gray-400 mt-1">اپ‌های خارجی با این کلید از طریق /api/* به پنل متصل می‌شوند.</span>
+                </span>
             </div>
-            <span class="accordion-arrow text-gray-400 text-xl transition-transform">▼</span>
+            <span class="acc-arrow text-gray-500">▼</span>
         </button>
         <div class="accordion-body hidden border-t border-white/5 p-5">
             {% if api_key %}
             <div class="bg-black/20 border border-white/10 rounded-lg p-3 mb-4">
                 <label class="block text-xs text-gray-400 mb-1">API Key فعلی:</label>
                 <div class="flex gap-2 items-center">
-                    <input id="apiKeyInput" type="password" value="{{ api_key }}" readonly class="flex-1 input-gold p-2 text-xs font-mono">
-                    <button type="button" onclick="var i=document.getElementById('apiKeyInput'); i.type = (i.type==='password') ? 'text' : 'password';" class="px-3 py-2 bg-white/5 hover:bg-white/10 rounded text-xs">👁️</button>
-                    <button onclick="copyText(document.getElementById('apiKeyInput').value)" class="px-3 py-2 bg-white/5 hover:bg-white/10 rounded text-xs">📋</button>
+                    <input id="apiKeyInput" type="password" value="{{ api_key }}" readonly class="flex-1 input-gold p-2 text-xs font-mono dir-ltr text-left">
+                    <button type="button" onclick="var i=document.getElementById('apiKeyInput'); i.type=(i.type==='password')?'text':'password';" class="px-3 py-2 bg-white/5 hover:bg-white/10 rounded text-xs">👁️</button>
+                    <button type="button" onclick="copyText(document.getElementById('apiKeyInput').value)" class="px-3 py-2 bg-white/5 hover:bg-white/10 rounded text-xs">📋</button>
                 </div>
             </div>
-
-            <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3 mb-4 text-xs">
-                <b>نمونه استفاده:</b>
-                <pre class="bg-black/60 text-green-300 p-2 rounded mt-2 dir-ltr text-left text-[11px] overflow-x-auto">curl -X POST {{ base_url }}/api/users \
-  -H "Authorization: Bearer {{ api_key[:8] }}..." \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","days":30}'</pre>
-            </div>
-
-            <form method="post" action="/admin/settings/api-key/regenerate" onsubmit="return confirm('API Key بازسازی شود؟ اپ‌های خارجی باید کلید جدید را استفاده کنند.')">
-                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 rounded-lg text-sm">🔄 بازسازی API Key (کلید قبلی بی‌اعتبار می‌شود)</button>
+            <form method="post" action="/admin/settings/api-key/regenerate" onsubmit="return confirm('API Key بازسازی شود؟ کلید قبلی بی‌اعتبار می‌شود.')">
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2.5 rounded-lg text-sm">🔄 بازسازی API Key</button>
             </form>
             {% else %}
-            <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-lg p-3 mb-4 text-xs">
-                ⚠️ هنوز API Key ساخته نشده. برای فعال‌سازی API، دکمه زیر را بزنید.
-            </div>
+            <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 rounded-lg p-3 mb-4 text-xs">⚠️ هنوز API Key ساخته نشده است.</div>
             <form method="post" action="/admin/settings/api-key/generate">
                 <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg text-sm">🔑 تولید API Key</button>
             </form>
@@ -298,11 +308,11 @@
 <script>
 function toggleAccordion(header) {
     const body = header.nextElementSibling;
-    const arrow = header.querySelector('.accordion-arrow');
+    const arrow = header.querySelector('.acc-arrow');
     const isOpen = !body.classList.contains('hidden');
 
     document.querySelectorAll('.accordion-body').forEach(b => b.classList.add('hidden'));
-    document.querySelectorAll('.accordion-arrow').forEach(a => a.style.transform = 'rotate(0deg)');
+    document.querySelectorAll('.acc-arrow').forEach(a => a.style.transform = 'rotate(0deg)');
 
     if (!isOpen) {
         body.classList.remove('hidden');
@@ -310,47 +320,17 @@ function toggleAccordion(header) {
     }
 }
 
-// ذخیره فوری وضعیت toggle بدون رفرش صفحه
-function saveToggleState(formId) {
-    const form = document.getElementById(formId);
-    fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-    }).then(() => {
-        jsToast('💾 وضعیت ذخیره شد');
-    }).catch(err => {
-        jsToast('❌ خطا در ذخیره: ' + err);
-    });
-}
+function setBackupToggle(target, checked) {
+    const section = document.getElementById(target + 'BackupSection');
+    section.classList.toggle('backup-section-disabled', !checked);
 
-function toggleEmailBackup() {
-    const toggle = document.getElementById('emailBackupToggle');
-    const section = document.getElementById('emailBackupSection');
-    const input = document.getElementById('emailEnabledInput');
-
-    if (toggle.checked) {
-        section.classList.remove('backup-section-disabled');
-        input.value = '1';
-    } else {
-        section.classList.add('backup-section-disabled');
-        input.value = '0';
-    }
-    saveToggleState('emailBackupForm');
-}
-
-function toggleTelegramBackup() {
-    const toggle = document.getElementById('telegramBackupToggle');
-    const section = document.getElementById('telegramBackupSection');
-    const input = document.getElementById('telegramEnabledInput');
-
-    if (toggle.checked) {
-        section.classList.remove('backup-section-disabled');
-        input.value = '1';
-    } else {
-        section.classList.add('backup-section-disabled');
-        input.value = '0';
-    }
-    saveToggleState('telegramBackupForm');
+    const fd = new FormData();
+    fd.append('target', target);
+    fd.append('enabled', checked ? '1' : '0');
+    fetch('/admin/settings/backup/toggle', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(() => jsToast(checked ? '✅ فعال شد و ذخیره شد' : '⏸️ غیرفعال شد و ذخیره شد'))
+        .catch(() => jsToast('❌ خطا در ذخیره وضعیت'));
 }
 </script>
 {% endblock %}
