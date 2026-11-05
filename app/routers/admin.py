@@ -588,6 +588,30 @@ def save_telegram_backup(
 
     return RedirectResponse(url="/admin/settings", status_code=303)
 
+@router.post("/settings/backup/toggle")
+def backup_toggle(request: Request, target: str = Form(...), enabled: bool = Form(...), db: Session = Depends(get_db)):
+    """فقط وضعیت فعال/غیرفعال یک مقصد را ذخیره می‌کند (بدون دست‌زدن به بقیه تنظیمات)."""
+    if target == "email":
+        set_setting(db, "backup_email_enabled", "1" if enabled else "0")
+        db.commit()
+        hours = int(get_setting(db, "backup_email_interval_hours", "0") or 0)
+        backup_scheduler.reschedule_email(hours if enabled else 0)
+    elif target == "telegram":
+        set_setting(db, "backup_telegram_enabled", "1" if enabled else "0")
+        db.commit()
+        hours = int(get_setting(db, "backup_telegram_interval_hours", "0") or 0)
+        backup_scheduler.reschedule_telegram(hours if enabled else 0)
+    return {"ok": True}
+
+
+@router.post("/settings/backup/password")
+def save_backup_password(request: Request, backup_password: str = Form(""), db: Session = Depends(get_db)):
+    if backup_password.strip():
+        set_setting(db, "backup_password", backup_password.strip())
+        db.commit()
+        request.session["message"] = "✅ رمز فایل زیپ ذخیره شد."
+    return RedirectResponse(url="/admin/settings", status_code=303)
+
 # ========== API Key Management ==========
 
 @router.post("/settings/api-key/generate")
