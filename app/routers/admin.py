@@ -344,8 +344,9 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
         "backup_email_smtp_server": get_setting(db, "backup_email_smtp_server", "smtp.gmail.com"),
         "backup_email_smtp_port": get_setting(db, "backup_email_smtp_port", "587"),
         "backup_email_smtp_user": get_setting(db, "backup_email_smtp_user", ""),
-        "backup_email_interval_hours": get_setting(db, "backup_email_interval_hours", "24"),
         "backup_email_from": get_setting(db, "backup_email_from", ""),
+        "backup_email_interval_hours": get_setting(db, "backup_email_interval_hours", "24"),
+        
         # بک‌آپ تلگرام
         "backup_telegram_enabled": get_setting(db, "backup_telegram_enabled", "0") == "1",
         "backup_telegram_bot_token": get_setting(db, "backup_telegram_bot_token", ""),
