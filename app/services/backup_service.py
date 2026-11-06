@@ -84,10 +84,10 @@ def send_backup_email(
     from_override: str = "",
 ) -> None:
     """ارسال فایل زیپ به ایمیل با SMTP قابل تنظیم."""
-    # آدرس فرستنده هوشمند:
-    # ۱) اگر From اختصاصی تنظیم شده → همان
-    # ۲) اگر یوزر SMTP خودش ایمیل است (مثل Gmail) → همان
-    # ۳) وگرنه (مثل Resend که یوزر="resend") → ایمیل مقصد
+    # From هوشمند:
+    # ۱) اگر From اختصاصی تنظیم شده و ایمیل است → همان
+    # ۲) اگر یوزر SMTP ایمیل است → همان
+    # ۳) وگرنه (مثل Resend) → ایمیل مقصد
     if from_override and "@" in from_override:
         from_addr = from_override
     elif "@" in smtp_user:
