@@ -514,6 +514,7 @@ def save_email_backup(
     smtp_port: str = Form("587"),
     smtp_user: str = Form(""),
     smtp_pass: str = Form(""),
+    smtp_from: str = Form(""),
     interval_hours: int = Form(24),
     action: str = Form("save"),
     db: Session = Depends(get_db),
