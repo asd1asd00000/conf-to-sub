@@ -142,6 +142,10 @@
                                 <input type="text" name="smtp_user" value="{{ backup_email_smtp_user }}" placeholder="your-email@gmail.com" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
                             </div>
                             <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">From (اختیاری)</label>
+                                <input type="email" name="smtp_from" value="{{ backup_email_from }}" placeholder="خالی = خودکار" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
+                            </div>
+                            <div>
                                 <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Password</label>
                                 <input type="password" name="smtp_pass" placeholder="خالی = تغییر نمی‌کند" class="input-gold w-full p-2.5 text-sm font-mono dir-ltr text-left">
                             </div>
