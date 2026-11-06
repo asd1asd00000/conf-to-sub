@@ -114,7 +114,7 @@
                         <span class="text-xl">📧</span>
                         <div>
                             <h3 class="text-sm font-bold text-yellow-400">بکاپ خودکار به ایمیل</h3>
-                            <p class="text-[11px] text-gray-400">برای Gmail حتماً از App Password استفاده کنید. هر SMTP دیگری (مثل Resend) هم کار می‌کند.</p>
+                            <p class="text-[11px] text-gray-400">SMTP قابل تنظیم (Gmail، Resend، Mailgun و...). برای Gmail از App Password استفاده کنید.</p>
                         </div>
                     </div>
                     <label class="toggle-switch">
@@ -142,12 +142,12 @@
                                 <input type="text" name="smtp_user" value="{{ backup_email_smtp_user }}" placeholder="your-email@gmail.com" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-yellow-400 mb-1">From (اختیاری)</label>
-                                <input type="email" name="smtp_from" value="{{ backup_email_from }}" placeholder="خالی = خودکار" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
-                            </div>
-                            <div>
                                 <label class="block text-xs font-bold text-yellow-400 mb-1">SMTP Password</label>
                                 <input type="password" name="smtp_pass" placeholder="خالی = تغییر نمی‌کند" class="input-gold w-full p-2.5 text-sm font-mono dir-ltr text-left">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-yellow-400 mb-1">From (اختیاری)</label>
+                                <input type="email" name="smtp_from" value="{{ backup_email_from }}" placeholder="خالی = خودکار" class="input-gold w-full p-2.5 text-sm dir-ltr text-left">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-yellow-400 mb-1">🕐 بازه ارسال</label>
