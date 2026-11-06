@@ -81,10 +81,22 @@ def send_backup_email(
     to_addr: str,
     zip_bytes: bytes,
     filename: str,
+    from_override: str = "",
 ) -> None:
     """ارسال فایل زیپ به ایمیل با SMTP قابل تنظیم."""
+    # آدرس فرستنده هوشمند:
+    # ۱) اگر From اختصاصی تنظیم شده → همان
+    # ۲) اگر یوزر SMTP خودش ایمیل است (مثل Gmail) → همان
+    # ۳) وگرنه (مثل Resend که یوزر="resend") → ایمیل مقصد
+    if from_override and "@" in from_override:
+        from_addr = from_override
+    elif "@" in smtp_user:
+        from_addr = smtp_user
+    else:
+        from_addr = to_addr
+
     msg = MIMEMultipart()
-    msg["From"] = smtp_user
+    msg["From"] = from_addr
     msg["To"] = to_addr
     msg["Subject"] = f"🎁 Gift Panel Backup - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
 
@@ -115,7 +127,7 @@ def send_backup_email(
             server.starttls()
             server.ehlo()
         server.login(smtp_user, smtp_password.replace(" ", ""))
-        server.send_message(msg)
+        server.send_message(msg, from_addr=from_addr, to_addrs=[to_addr])
 
 
 def send_backup_telegram(
