@@ -136,7 +136,7 @@
                         <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">فعال</span>
                     {% endif %}
                     <div class="text-xs text-gray-600 mt-1">
-                        {% if user.expired %}⌛ منقضی شده{% else %}⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه مانده{% endif %}
+                        {% if user.expired %}⌛ منقضی شده <span class="text-red-500 font-bold">(0 روز از {{ user.total_days }} روز مانده)</span>{% else %}⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه مانده{% endif %}
                     </div>
                     <div class="text-xs text-gray-400 mt-0.5">📅 تا {{ user.expire_str }}</div>
                 </td>
@@ -195,7 +195,7 @@
 
         <!-- بدنه مخفی: با لمس هدر باز/بسته می‌شود -->
         <div class="acc-body hidden border-t border-white/5 px-4 py-3 space-y-2 text-xs">
-            <div class="text-gray-300">{% if user.expired %}⌛ منقضی شده{% else %}⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه مانده{% endif %}</div>
+            <div class="text-gray-300">{% if user.expired %}⌛ منقضی شده <span class="text-red-500 font-bold">(0 روز از {{ user.total_days }} روز مانده)</span>{% else %}⏳ {{ user.days_left }} روز و {{ user.hours_left }} ساعت و {{ user.mins_left }} دقیقه مانده{% endif %}</div>
             <div class="text-gray-400">📅 تا {{ user.expire_str }}</div>
             <div class="flex items-center gap-1 text-gray-400">
                 <span class="w-2 h-2 rounded-full {{ 'bg-green-500' if user.seen_recent else 'bg-gray-300' }}"></span>
