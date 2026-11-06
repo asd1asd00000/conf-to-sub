@@ -536,7 +536,6 @@ def save_email_backup(
             ok, msg = run_email_backup(db)
             request.session["message"] = msg
         else:
-            # وضعیت فعال/غیرفعال فقط از دیتابیس خوانده می‌شود (toggle مال آن است)
             enabled = get_setting(db, "backup_email_enabled", "0") == "1"
             if enabled and interval_hours > 0:
                 backup_scheduler.reschedule_email(interval_hours)
