@@ -21,27 +21,23 @@
         </div>
     </nav>
 
-    <!-- ناوبری پایین: فقط موبایل (لوگو + منو) -->
+    <!-- ناوبری پایین: فقط موبایل -->
     <nav class="nav-glass bottom-nav md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-yellow-400/20">
-        <div class="flex items-stretch justify-around px-1 pt-1 text-[10px]">
-            <a href="/admin/" class="flex flex-col items-center gap-0.5 py-1.5 flex-1 rounded-xl mx-0.5 text-yellow-400">
-                <span class="text-lg leading-none">🎁</span>
-                <span class="font-bold">پنل</span>
-            </a>
-            <a href="/admin/" class="flex flex-col items-center gap-0.5 py-1.5 flex-1 rounded-xl mx-0.5 {{ 'bg-yellow-400/10 text-yellow-400 font-bold' if active_page == 'dashboard' else 'text-gray-400' }}">
-                <span class="text-lg leading-none">📊</span>
+        <div class="flex items-stretch justify-around px-1 pt-1 text-xs">
+            <a href="/admin/" class="flex flex-col items-center gap-1 py-2 flex-1 rounded-xl mx-0.5 {{ 'bg-yellow-400/10 text-yellow-400 font-bold' if active_page == 'dashboard' else 'text-gray-400' }}">
+                <span class="text-xl leading-none">📊</span>
                 <span>داشبورد</span>
             </a>
-            <a href="/admin/users" class="flex flex-col items-center gap-0.5 py-1.5 flex-1 rounded-xl mx-0.5 {{ 'bg-yellow-400/10 text-yellow-400 font-bold' if active_page == 'users' else 'text-gray-400' }}">
-                <span class="text-lg leading-none">👥</span>
+            <a href="/admin/users" class="flex flex-col items-center gap-1 py-2 flex-1 rounded-xl mx-0.5 {{ 'bg-yellow-400/10 text-yellow-400 font-bold' if active_page == 'users' else 'text-gray-400' }}">
+                <span class="text-xl leading-none">👥</span>
                 <span>کاربران</span>
             </a>
-            <a href="/admin/settings" class="flex flex-col items-center gap-0.5 py-1.5 flex-1 rounded-xl mx-0.5 {{ 'bg-yellow-400/10 text-yellow-400 font-bold' if active_page == 'settings' else 'text-gray-400' }}">
-                <span class="text-lg leading-none">⚙️</span>
+            <a href="/admin/settings" class="flex flex-col items-center gap-1 py-2 flex-1 rounded-xl mx-0.5 {{ 'bg-yellow-400/10 text-yellow-400 font-bold' if active_page == 'settings' else 'text-gray-400' }}">
+                <span class="text-xl leading-none">⚙️</span>
                 <span>تنظیمات</span>
             </a>
-            <a href="/admin/logout" class="flex flex-col items-center gap-0.5 py-1.5 flex-1 rounded-xl mx-0.5 text-gray-400">
-                <span class="text-lg leading-none">🚪</span>
+            <a href="/admin/logout" class="flex flex-col items-center gap-1 py-2 flex-1 rounded-xl mx-0.5 text-gray-400">
+                <span class="text-xl leading-none">🚪</span>
                 <span>خروج</span>
             </a>
         </div>
@@ -63,8 +59,8 @@
     </div>
 
     <!-- مودال تأیید اختصاصی پنل -->
-       <div id="confirmModal" class="modal-overlay hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
-                <div class="modal-solid rounded-2xl w-full max-w-sm p-6 text-center">
+    <div id="confirmModal" class="modal-overlay hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="modal-solid rounded-2xl w-full max-w-sm p-6 text-center">
             <div class="text-4xl mb-3">⚠️</div>
             <h3 class="font-bold text-lg mb-2 text-white">مطمئن هستید؟</h3>
             <p id="confirmMsg" class="text-sm text-gray-400 mb-5"></p>
