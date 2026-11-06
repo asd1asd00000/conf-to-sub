@@ -524,6 +524,7 @@ def save_email_backup(
         set_setting(db, "backup_email_smtp_server", smtp_server.strip())
         set_setting(db, "backup_email_smtp_port", smtp_port.strip())
         set_setting(db, "backup_email_smtp_user", smtp_user.strip())
+        set_setting(db, "backup_email_from", smtp_from.strip())
         if smtp_pass.strip():
             set_setting(db, "backup_email_smtp_password", smtp_pass.strip())
         set_setting(db, "backup_email_interval_hours", str(interval_hours))
