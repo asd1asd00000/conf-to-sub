@@ -180,7 +180,8 @@ def run_email_backup(db) -> tuple[bool, str]:
 
         zip_bytes = create_backup_zip(db, password)
         filename = f"gift-panel-backup-{datetime.now().strftime('%Y%m%d-%H%M%S')}.zip"
-        send_backup_email(smtp_server, smtp_port, smtp_user, smtp_password, to_addr, zip_bytes, filename)
+        from_override = get_setting_val(db, "backup_email_from", "").strip()
+        send_backup_email(smtp_server, smtp_port, smtp_user, smtp_password, to_addr, zip_bytes, filename, from_override=from_override)
         
         msg = f"ارسال به {to_addr}"
         log_backup(db, "email", True, msg)
