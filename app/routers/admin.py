@@ -105,6 +105,7 @@ def users_page(request: Request, q: str = "", page: int = Query(1), per_page: in
         u.expire_str = u.expire_date.strftime("%Y-%m-%d %H:%M") if u.expire_date else "-"
         u.used_txt = f"{int(used_sec // 86400)} روز و {int((used_sec % 86400) // 3600)} ساعت"
         u.total_txt = f"{int(total_sec // 86400)} روز و {int((total_sec % 86400) // 3600)} ساعت"
+        u.total_days = max(1, round(total_sec / 86400))
         u.percent = max(0, min(100, int(used_sec * 100 / total_sec)))
         u.seen_txt = time_ago(u.last_seen, now)
         u.seen_recent = bool(u.last_seen and (now - u.last_seen).total_seconds() < 86400)
@@ -368,7 +369,6 @@ def save_broadcast(request: Request, broadcast_text: str = Form(""), broadcast_e
     return RedirectResponse(url="/admin/settings", status_code=303)
 
 @router.post("/settings/backup")
-@router.post("/settings/backup")
 def save_backup_settings(
     request: Request,
     backup_enabled: bool = Form(False),
@@ -407,6 +407,7 @@ def save_backup_settings(
         request.session["message"] = f"❌ خطا: {e}"
 
     return RedirectResponse(url="/admin/settings", status_code=303)
+
 @router.post("/settings/backup/test")
 def test_backup_now(request: Request, db: Session = Depends(get_db)):
     ok, msg = backup_service.run_backup_job(db)
