@@ -240,9 +240,11 @@ def api_update_user(user_id: int, payload: UserUpdate, request: Request, db: Ses
     if payload.is_active is not None:
         user.is_active = payload.is_active
 
-    # تغییر تاریخ انقضا (از همین لحظه)
+    # تغییر تاریخ انقضا (از همین لحظه) + ریست شروع دوره برای نوار پیشرفت
     if payload.change_expire:
-        user.expire_date = datetime.utcnow() + timedelta(
+        now = datetime.utcnow()
+        user.created_at = now
+        user.expire_date = now + timedelta(
             days=payload.days,
             hours=payload.hours,
             minutes=payload.minutes
@@ -272,8 +274,7 @@ def api_delete_user(user_id: int, db: Session = Depends(get_db)):
 def api_renew_user(user_id: int, payload: RenewRequest, request: Request, db: Session = Depends(get_db)):
     """
     تمدید اعتبار: افزودن N روز/ساعت/دقیقه به تاریخ انقضای فعلی.
-    تفاوت مهم با PATCH: اگر انقضا در آینده باشد، از همان نقطه ادامه می‌دهد؛
-    اگر گذشته باشد، از همین لحظه شروع می‌کند.
+    همزمان مبدأ نوار پیشرفت (created_at) و شمارنده آپدیت ساب (sub_update_count) را ریست می‌کند.
     """
     user = get_user_or_404(user_id, db)
 
@@ -286,6 +287,12 @@ def api_renew_user(user_id: int, payload: RenewRequest, request: Request, db: Se
         minutes=payload.minutes
     )
 
+    # ریست نوار پیشرفت مصرف زمان به ۰٪
+    user.created_at = now
+
+    # ریست شمارنده تعداد آپدیت ساب به ۰
+    user.sub_update_count = 0
+
     # اگر کاربر غیرفعال بود، با تمدید دوباره فعال شود
     if not user.is_active:
         user.is_active = True
@@ -293,7 +300,6 @@ def api_renew_user(user_id: int, payload: RenewRequest, request: Request, db: Se
     db.commit()
     db.refresh(user)
     return user_to_dict(user, request)
-
 
 # ============ API Key Management (internal use by admin panel) ============
 
