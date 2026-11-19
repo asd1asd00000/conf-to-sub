@@ -194,7 +194,9 @@ def edit_user(request: Request, user_id: int, username: str = Form(...), change_
         raise HTTPException(status_code=404, detail="User not found")
     user.username = username
     if change_expire:
-        user.expire_date = datetime.utcnow() + timedelta(days=exp_days, hours=exp_hours, minutes=exp_mins)
+        now = datetime.utcnow()
+        user.created_at = now
+        user.expire_date = now + timedelta(days=exp_days, hours=exp_hours, minutes=exp_mins)
     user.is_active = is_active
     if reset_count:
         user.sub_update_count = 0
