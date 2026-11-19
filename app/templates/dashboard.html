@@ -11,9 +11,10 @@
             <textarea id="rawText" name="raw_text" rows="8" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-green-500 focus:outline-none text-left dir-ltr text-sm" placeholder="vless://...
 vmess://...
 trojan://..."></textarea>
-            <div class="flex gap-2 mb-3">
-                <button type="button" onclick="pasteConfig()" class="bg-white/5 hover:bg-white/10 text-yellow-400 border border-yellow-400/30 px-4 py-2 rounded-lg text-sm">📋 جاگذاری از کلیپ‌بورد</button>
-                <button type="button" onclick="document.getElementById('rawText').value=''" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-lg text-xs">🧹 پاک کردن</button>
+            <div class="flex items-center gap-1.5 mb-3">
+                <button type="button" id="pasteSaveBtn" onclick="pasteAndSave()" class="flex-1 bg-white/10 hover:bg-white/15 text-yellow-400 border border-yellow-400/50 px-3 py-2.5 rounded-lg text-sm font-bold whitespace-nowrap transition">⚡ جاگذاری و ذخیره</button>
+                <button type="button" onclick="pasteConfig()" class="bg-white/5 hover:bg-white/10 text-yellow-400/90 border border-yellow-400/25 px-2 py-1.5 rounded-lg text-[11px] leading-tight transition">📋 جاگذاری از کلیپ‌بورد</button>
+                <button type="button" onclick="document.getElementById('rawText').value=''" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1.5 rounded-lg text-[11px] whitespace-nowrap transition">🧹 پاک کردن</button>
             </div>
             <button type="submit" id="saveBtn" class="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">ذخیره کانفیگ‌ها</button>
         </form>
@@ -133,12 +134,32 @@ trojan://..."></textarea>
         }
         document.getElementById('progressModal').classList.remove('hidden');
         document.getElementById('saveBtn').disabled = true;
+        const pasteSaveBtn = document.getElementById('pasteSaveBtn');
+        if (pasteSaveBtn) pasteSaveBtn.disabled = true;
         let i = 0;
         setInterval(() => {
             i = (i + 1) % progressSteps.length;
             document.getElementById('progressMsg').textContent = progressSteps[i];
         }, 2500);
         return true;
+    }
+
+    async function pasteAndSave(){
+        try {
+            const text = await navigator.clipboard.readText();
+            if (!text || !text.trim()) {
+                jsToast('⚠️ کلیپ‌بورد خالی است!');
+                return;
+            }
+            const ta = document.getElementById('rawText');
+            if (!ta) return;
+            ta.value = ta.value.trim() ? (ta.value.trim() + '\n' + text.trim()) : text.trim();
+            if (showProgress()) {
+                document.getElementById('addConfigForm').submit();
+            }
+        } catch (err) {
+            jsToast('❌ دسترسی به کلیپ‌بورد مجاز نیست!');
+        }
     }
 
     function changePerPage(n){
